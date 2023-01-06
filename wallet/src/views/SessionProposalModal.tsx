@@ -7,7 +7,7 @@ import { signClient } from '@/utils/WalletConnectUtil'
 import { Button, Divider, Modal, Text } from '@nextui-org/react'
 import { SessionTypes } from '@walletconnect/types'
 import { getSdkError } from '@walletconnect/utils'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { kadenaAddresses } from '@/utils/KadenaWalletUtil'
 
 export default function SessionProposalModal() {
@@ -81,7 +81,7 @@ export default function SessionProposalModal() {
   }
 
   return (
-    <Fragment>
+    <>
       <RequestModalContainer title="Session Proposal">
         <ProjectInfoCard metadata={proposer.metadata} />
 
@@ -91,7 +91,7 @@ export default function SessionProposalModal() {
 
         {Object.keys(requiredNamespaces).map(chain => {
           return (
-            <Fragment key={chain}>
+            <>
               <Text h4 css={{ marginBottom: '$5' }}>{`Review ${chain} permissions`}</Text>
               <SessionProposalChainCard requiredNamespace={requiredNamespaces[chain]} />
               <ProposalSelectSection
@@ -101,7 +101,7 @@ export default function SessionProposalModal() {
                 chain={chain}
               />
               <Divider y={2} />
-            </Fragment>
+            </>
           )
         })}
       </RequestModalContainer>
@@ -122,6 +122,6 @@ export default function SessionProposalModal() {
           Approve
         </Button>
       </Modal.Footer>
-    </Fragment>
+    </>
   )
 }

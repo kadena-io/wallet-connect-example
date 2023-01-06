@@ -2,7 +2,7 @@ import PageHeader from '@/components/PageHeader'
 import QrReader from '@/components/QrReader'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { Button, Input, Loading, Text } from '@nextui-org/react'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 
 export default function WalletConnectPage() {
   const [uri, setUri] = useState('')
@@ -21,7 +21,7 @@ export default function WalletConnectPage() {
   }
 
   return (
-    <Fragment>
+    <>
       <PageHeader title="WalletConnect" />
 
       <QrReader onConnect={onConnect} />
@@ -49,6 +49,6 @@ export default function WalletConnectPage() {
           </Button>
         }
       />
-    </Fragment>
+    </>
   )
 }

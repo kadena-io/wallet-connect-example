@@ -1,5 +1,5 @@
 import { Col, Divider, Row, Text } from '@nextui-org/react'
-import { Fragment, ReactNode } from 'react'
+import { ReactNode } from 'react'
 
 /**
  * Types
@@ -14,7 +14,7 @@ interface Props {
  */
 export default function PageHeader({ title, children }: Props) {
   return (
-    <Fragment>
+    <>
       <Row css={{ marginBottom: '$5', width: '100%' }} justify="space-between" align="center">
         <Col>
           <Text
@@ -31,6 +31,6 @@ export default function PageHeader({ title, children }: Props) {
       </Row>
 
       <Divider css={{ marginBottom: '$10' }} />
-    </Fragment>
+    </>
   )
 }

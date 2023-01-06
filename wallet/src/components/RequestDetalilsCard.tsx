@@ -1,7 +1,6 @@
 import { KADENA_CHAINS, TKadenaChain } from '@/data/KadenaData'
 
 import { Col, Divider, Row, Text } from '@nextui-org/react'
-import { Fragment } from 'react'
 
 /**
  * Types
@@ -16,7 +15,7 @@ interface IProps {
  */
 export default function RequestDetailsCard({ chains, protocol }: IProps) {
   return (
-    <Fragment>
+    <>
       <Row>
         <Col>
           <Text h5>Blockchain(s)</Text>
@@ -34,6 +33,6 @@ export default function RequestDetailsCard({ chains, protocol }: IProps) {
           <Text color="$gray400">{protocol}</Text>
         </Col>
       </Row>
-    </Fragment>
+    </>
   )
 }

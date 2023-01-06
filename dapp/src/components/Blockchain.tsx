@@ -78,6 +78,12 @@ const SAction = styled(Button as any)`
   background-color: ${({ rgb }) => `rgb(${rgb})`};
 `;
 
+const SAddress = styled.div`
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
 const SBlockchainChildrenContainer = styled(SFullWidthContainer)`
   flex-direction: column;
 `;
@@ -120,7 +126,7 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
       ? balances[account]
       : [];
   return (
-    <React.Fragment>
+    <>
       <SAccount
         rgb={meta.rgb}
         onClick={() => onClick && onClick(props.chainId)}
@@ -130,7 +136,7 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
           <img src={meta.logo} alt={name} />
           <p>{name}</p>
         </SChain>
-        {!!address && <p>{ellipseAddress(address)}</p>}
+        {!!address && <SAddress>{address}</SAddress>}
         <SBlockchainChildrenContainer>
           {fetching ? (
             <Column center>
@@ -171,7 +177,8 @@ const Blockchain: FC<PropsWithChildren<BlockchainProps>> = (
           )}
         </SBlockchainChildrenContainer>
       </SAccount>
-    </React.Fragment>
+    </>
   );
 };
+
 export default Blockchain;

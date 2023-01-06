@@ -4,11 +4,10 @@ import RequestDetailsCard from '@/components/RequestDetalilsCard'
 import RequestMethodCard from '@/components/RequestMethodCard'
 import RequestModalContainer from '@/components/RequestModalContainer'
 import ModalStore from '@/store/ModalStore'
-import { convertHexToUtf8, getSignParamsMessage } from '@/utils/HelperUtil'
+import { convertHexToUtf8 } from '@/utils/HelperUtil'
 import { approveKadenaRequest, rejectKadenaRequest } from '@/utils/KadenaRequestHandlerUtil'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { Button, Col, Divider, Modal, Row, Text } from '@nextui-org/react'
-import { Fragment } from 'react'
 
 export default function SessionSignKadenaModal() {
   // Get request and wallet data from store
@@ -52,7 +51,7 @@ export default function SessionSignKadenaModal() {
   }
 
   return (
-    <Fragment>
+    <>
       <RequestModalContainer title="Sign Message">
         <ProjectInfoCard metadata={requestSession.peer.metadata} />
 
@@ -90,6 +89,6 @@ export default function SessionSignKadenaModal() {
           Approve
         </Button>
       </Modal.Footer>
-    </Fragment>
+    </>
   )
 }

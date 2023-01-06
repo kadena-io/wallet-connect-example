@@ -1,7 +1,7 @@
 import { Button, Loading } from '@nextui-org/react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 
 /**
  * You can use normal import if you are not within next / ssr environment
@@ -42,7 +42,7 @@ export default function QrReader({ onConnect }: IProps) {
   return (
     <div className="container">
       {show ? (
-        <Fragment>
+        <>
           {loading && <Loading css={{ position: 'absolute' }} />}
           <div className="qrVideoMask">
             <ReactQrReader
@@ -53,7 +53,7 @@ export default function QrReader({ onConnect }: IProps) {
               style={{ width: '100%' }}
             />
           </div>
-        </Fragment>
+        </>
       ) : (
         <div className="container qrPlaceholder">
           <Image

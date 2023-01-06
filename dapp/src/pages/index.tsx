@@ -67,7 +67,6 @@ const Home: NextPage = () => {
       throw new Error("WalletConnect is not initialized");
     }
 
-    console.log({ pairings });
     // Suggest existing pairings (if any).
     if (pairings.length) {
       openPairingModal();

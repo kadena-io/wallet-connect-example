@@ -1,8 +1,6 @@
 import { BigNumber, BigNumberish, utils } from "ethers";
 import * as encoding from "@walletconnect/encoding";
 
-import { DEFAULT_CHAINS } from "../constants";
-
 export function capitalize(string: string): string {
   return string
     .split(" ")

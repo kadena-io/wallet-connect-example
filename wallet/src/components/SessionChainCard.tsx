@@ -3,7 +3,6 @@ import { KADENA_MAINNET_CHAINS, KADENA_TEST_CHAINS } from '@/data/KadenaData'
 import { formatChainName } from '@/utils/HelperUtil'
 import { Col, Row, Text } from '@nextui-org/react'
 import { SessionTypes } from '@walletconnect/types'
-import { Fragment } from 'react'
 
 /**
  * Utilities
@@ -26,8 +25,6 @@ interface IProps {
 export default function SessionChainCard({ namespace }: IProps) {
   const chains: string[] = []
 
-  // WIP
-
   namespace.accounts.forEach(account => {
     const [type, chain] = account.split(':')
     const chainId = `${type}:${chain}`
@@ -35,7 +32,7 @@ export default function SessionChainCard({ namespace }: IProps) {
   })
 
   return (
-    <Fragment>
+    <>
       {chains.map(chainId => {
         const extensionMethods: SessionTypes.Namespace['methods'] = []
         const extensionEvents: SessionTypes.Namespace['events'] = []
@@ -76,6 +73,6 @@ export default function SessionChainCard({ namespace }: IProps) {
           </ChainCard>
         )
       })}
-    </Fragment>
+    </>
   )
 }

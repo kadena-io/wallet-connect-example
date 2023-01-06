@@ -3,7 +3,6 @@ import { KADENA_MAINNET_CHAINS, KADENA_TEST_CHAINS } from '@/data/KadenaData'
 import { formatChainName } from '@/utils/HelperUtil'
 import { Col, Row, Text } from '@nextui-org/react'
 import { ProposalTypes } from '@walletconnect/types'
-import { Fragment } from 'react'
 
 /**
  * Utilities
@@ -25,7 +24,7 @@ interface IProps {
  */
 export default function SessionProposalChainCard({ requiredNamespace }: IProps) {
   return (
-    <Fragment>
+    <>
       {requiredNamespace.chains.map(chainId => {
         const extensionMethods: ProposalTypes.RequiredNamespace['methods'] = []
         const extensionEvents: ProposalTypes.RequiredNamespace['events'] = []
@@ -62,6 +61,6 @@ export default function SessionProposalChainCard({ requiredNamespace }: IProps) 
           </ChainCard>
         )
       })}
-    </Fragment>
+    </>
   )
 }

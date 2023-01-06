@@ -2,8 +2,7 @@ import PageHeader from '@/components/PageHeader'
 import RelayRegionPicker from '@/components/RelayRegionPicker'
 import SettingsStore from '@/store/SettingsStore'
 import { kadenaWallets } from '@/utils/KadenaWalletUtil'
-import { Card, Divider, Row, Switch, Text } from '@nextui-org/react'
-import { Fragment } from 'react'
+import { Card, Divider, Row, Text } from '@nextui-org/react'
 import { useSnapshot } from 'valtio'
 import packageJSON from '../../package.json'
 
@@ -11,7 +10,7 @@ export default function SettingsPage() {
   const { kadenaAddress } = useSnapshot(SettingsStore.state)
 
   return (
-    <Fragment>
+    <>
       <PageHeader title="Settings" />
 
       <Text h4 css={{ marginBottom: '$5' }}>
@@ -52,6 +51,6 @@ export default function SettingsPage() {
       <Card bordered borderWeight="light" css={{ wordWrap: 'break-word' }}>
         <Text css={{ fontFamily: '$mono' }}>{kadenaWallets[kadenaAddress].getSecretKey()}</Text>
       </Card>
-    </Fragment>
+    </>
   )
 }

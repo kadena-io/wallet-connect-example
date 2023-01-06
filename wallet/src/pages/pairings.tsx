@@ -3,7 +3,7 @@ import PairingCard from '@/components/PairingCard'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { Text } from '@nextui-org/react'
 import { getSdkError } from '@walletconnect/utils'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 
 export default function PairingsPage() {
   const [pairings, setPairings] = useState(signClient.pairing.values)
@@ -15,7 +15,7 @@ export default function PairingsPage() {
   }
 
   return (
-    <Fragment>
+    <>
       <PageHeader title="Pairings" />
       {pairings.length ? (
         pairings.map(pairing => {
@@ -34,6 +34,6 @@ export default function PairingsPage() {
       ) : (
         <Text css={{ opacity: '0.5', textAlign: 'center', marginTop: '$20' }}>No pairings</Text>
       )}
-    </Fragment>
+    </>
   )
 }

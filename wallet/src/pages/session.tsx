@@ -5,7 +5,7 @@ import { signClient } from '@/utils/WalletConnectUtil'
 import { Button, Divider, Loading, Row, Text } from '@nextui-org/react'
 import { getSdkError } from '@walletconnect/utils'
 import { useRouter } from 'next/router'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 /**
  * Component
@@ -75,39 +75,8 @@ export default function SessionPage() {
     setLoading(false)
   }
 
-  // function renderAccountSelection(chain: string) {
-  //   if (isEIP155Chain(chain)) {
-  //     return (
-  //       <ProposalSelectSection
-  //         addresses={eip155Addresses}
-  //         selectedAddresses={selectedAccounts[chain]}
-  //         onSelect={onSelectAccount}
-  //         chain={chain}
-  //       />
-  //     )
-  //   } else if (isCosmosChain(chain)) {
-  //     return (
-  //       <ProposalSelectSection
-  //         addresses={cosmosAddresses}
-  //         selectedAddresses={selectedAccounts[chain]}
-  //         onSelect={onSelectAccount}
-  //         chain={chain}
-  //       />
-  //     )
-  //   } else if (isSolanaChain(chain)) {
-  //     return (
-  //       <ProposalSelectSection
-  //         addresses={solanaAddresses}
-  //         selectedAddresses={selectedAccounts[chain]}
-  //         onSelect={onSelectAccount}
-  //         chain={chain}
-  //       />
-  //     )
-  //   }
-  // }
-
   return (
-    <Fragment>
+    <>
       <PageHeader title="Session Details" />
 
       <ProjectInfoCard metadata={session.peer.metadata} />
@@ -116,12 +85,11 @@ export default function SessionPage() {
 
       {Object.keys(namespaces).map(chain => {
         return (
-          <Fragment key={chain}>
+          <>
             <Text h4 css={{ marginBottom: '$5' }}>{`Review ${chain} permissions`}</Text>
             <SessionChainCard namespace={namespaces[chain]} />
-            {/* {renderAccountSelection(chain)} */}
             <Divider y={2} />
-          </Fragment>
+          </>
         )
       })}
 
@@ -158,6 +126,6 @@ export default function SessionPage() {
           {loading ? <Loading size="sm" color="warning" /> : 'Update'}
         </Button>
       </Row>
-    </Fragment>
+    </>
   )
 }

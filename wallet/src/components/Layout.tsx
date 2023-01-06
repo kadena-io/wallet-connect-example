@@ -1,7 +1,7 @@
 import Navigation from '@/components/Navigation'
 import RouteTransition from '@/components/RouteTransition'
 import { Card, Container, Loading } from '@nextui-org/react'
-import { Fragment, ReactNode } from 'react'
+import { ReactNode } from 'react'
 
 /**
  * Types
@@ -45,7 +45,7 @@ export default function Layout({ children, initialized }: Props) {
         }}
       >
         {initialized ? (
-          <Fragment>
+          <>
             <RouteTransition>
               <Card.Body
                 css={{
@@ -79,7 +79,7 @@ export default function Layout({ children, initialized }: Props) {
             >
               <Navigation />
             </Card.Footer>
-          </Fragment>
+          </>
         ) : (
           <Loading />
         )}

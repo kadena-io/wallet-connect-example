@@ -19,9 +19,10 @@ import {
   DEFAULT_PROJECT_ID,
   DEFAULT_RELAY_URL,
 } from "../constants";
-import { AccountBalances, apiGetAccountBalance } from "../helpers";
+import { AccountBalances } from "../helpers";
 import { getAppMetadata, getSdkError } from "@walletconnect/utils";
 import { getRequiredNamespaces } from "../helpers/namespaces";
+import { apiGetAccountBalance } from "../helpers/kadena";
 
 /**
  * Types
@@ -91,9 +92,8 @@ export function ClientContextProvider({
     try {
       const arr = await Promise.all(
         _accounts.map(async (account) => {
-          const [namespace, reference, address] = account.split(":");
-          const chainId = `${namespace}:${reference}`;
-          const assets = await apiGetAccountBalance(address, chainId);
+          const [, reference, address] = account.split(":");
+          const assets = await apiGetAccountBalance(address, reference);
           return { account, assets: [assets] };
         })
       );

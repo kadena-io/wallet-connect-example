@@ -9,9 +9,15 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@kadena/client": "^0.2.11",
+    "@kadena/pactjs": "^0.2.5",
+    "@kadena/types": "^0.2.3",
     "@types/node": "18.15.11",
     "@types/react": "18.0.33",
     "@types/react-dom": "18.0.11",
+    "@walletconnect/encoding": "^1.0.2",
+    "@walletconnect/sign-client": "^2.6.2",
+    "@web3modal/standalone": "^2.2.2",
     "eslint": "8.37.0",
     "eslint-config-next": "13.2.4",
     "next": "13.2.4",

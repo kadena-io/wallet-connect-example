@@ -1,13 +1,22 @@
 import { useWalletConnectClient } from "@/providers/ClientContextProvider";
+import { networkMap } from "@/utils/networkMap";
 import { onlyKey } from "@/utils/onlyKey";
+import { signWithWalletConnect } from "@/utils/signWithWalletConnect";
 import { PactCommand } from "@kadena/client";
+import { useState } from "react";
 
 export const TransactionButton = ({
+  selectedNetwork,
   selectedAccount,
 }: {
-  selectedAccount?: string;
+  selectedNetwork: keyof typeof networkMap;
+  selectedAccount: any;
+  accounts?: any[];
 }) => {
   const { client, session } = useWalletConnectClient();
+
+  const [amount, setAmount] = useState<number>(0);
+  const [toAccount, setToAccount] = useState<string | undefined>();
 
   const handleClick = async () => {
     if (!client) {
@@ -19,55 +28,77 @@ export const TransactionButton = ({
     }
 
     if (!selectedAccount) {
-      throw new Error("No selected account");
+      throw new Error("No selected account to send from");
     }
 
-    const signingRequest = new PactCommand();
+    if (!toAccount) {
+      throw new Error("No account to send to set");
+    }
 
-    signingRequest.code = `(coin.transfer "${selectedAccount}" "k:a9719977e4c9960d1428160d53ad977d4cfdf3e85b70cf83f78b2176c8fa65bf" 2.0)`;
+    if (!amount) {
+      throw new Error("No amount set");
+    }
 
-    signingRequest
-      .addCap("coin.GAS", onlyKey(selectedAccount))
-      .addCap("coin.TRANSFER", onlyKey(selectedAccount), [
-        selectedAccount,
-        "k:1c131be8d83f1d712b33ae0c7afd60bca0db80f362f5de9ba8792c6f4e7df488",
-        2,
+    const pactCommand = new PactCommand();
+
+    pactCommand.code = `(coin.transfer "${selectedAccount.account}" "${toAccount}" ${amount})`;
+
+    pactCommand
+      .addCap("coin.GAS", onlyKey(selectedAccount.account))
+      .addCap("coin.TRANSFER", onlyKey(selectedAccount.account), [
+        selectedAccount.account,
+        toAccount,
+        amount,
       ])
       .setMeta(
         {
-          sender: selectedAccount,
-          chainId: "0",
+          sender: selectedAccount.account,
+          chainId: selectedAccount.chain,
         },
-        "mainnet01"
-      )
-      .createCommand();
+        selectedNetwork
+      );
 
-    console.log(signingRequest);
+    const result = await signWithWalletConnect(client, session, pactCommand);
 
-    const transactionRequest = {
-      id: 1,
-      jsonrpc: "2.0",
-      method: "kadena_sign_v1",
-      params: signingRequest,
-    };
-
-    console.log(transactionRequest);
-
-    const result = await client
-      .request({
-        topic: session.topic,
-        chainId: "kadena:mainnet01",
-        request: transactionRequest,
-      })
-      .catch((e) => console.log("Error sending transaction:", e));
-
-    console.log(result);
+    console.log("signWithWalletConnect result:", result);
   };
 
   return (
     <>
       <h2>Transaction</h2>
-      <button onClick={handleClick}>Send transaction</button>
+      {selectedAccount ? (
+        <>
+          <p>
+            <strong>Account:</strong> {selectedAccount?.account}
+            <br />
+            <strong>Chain:</strong> {selectedAccount?.chain}
+          </p>
+
+          <p>
+            <label>
+              <strong>Account to transfer to:</strong>
+              <input
+                type="text"
+                onChange={(e) => setToAccount(e.target.value)}
+              />
+            </label>
+
+            <br />
+
+            <label>
+              <strong>Amount:</strong>{" "}
+              <input
+                type="number"
+                onChange={(e) => setAmount(parseFloat(e.target.value))}
+              />
+            </label>
+          </p>
+
+          <button onClick={handleClick}>Send transaction</button>
+        </>
+      ) : (
+        <div>Select an account to send the transfer from</div>
+      )}
     </>
   );
 };

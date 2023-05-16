@@ -1,19 +1,20 @@
 import { GetAccounts } from "@/components/GetAccounts";
 import { TransactionButton } from "@/components/TransactionButton";
 import { useWalletConnectClient } from "@/providers/ClientContextProvider";
+import { networkMap } from "@/utils/networkMap";
 import { useEffect, useState } from "react";
 
 function App() {
   const { pairings, session, accounts, connect, disconnect, isInitializing } =
     useWalletConnectClient();
 
-  const [selectedAccount, setSelectedAccount] = useState<string | undefined>();
+  const [selectedNetwork, setSelectedNetwork] =
+    useState<keyof typeof networkMap>("mainnet01");
 
-  useEffect(() => {
-    if (!accounts) return;
-
-    setSelectedAccount(accounts[0]);
-  }, [accounts]);
+  const [selectedAccount, setSelectedAccount] = useState<{
+    account: string;
+    chain: string;
+  }>();
 
   const handleConnect = () => {
     connect();
@@ -22,20 +23,34 @@ function App() {
   return (
     <div>
       <h1>WalletConnect</h1>
+      <p>
+        <select
+          onChange={(e) =>
+            setSelectedNetwork(e.target.value as keyof typeof networkMap)
+          }
+        >
+          {Object.keys(networkMap).map((network) => (
+            <option key={network} value={network}>
+              {network}
+            </option>
+          ))}
+        </select>
+      </p>
       {session ? (
         <>
           <button onClick={disconnect}>Disconnect</button>
 
-          <select onChange={(e) => setSelectedAccount(e.target.value)}>
-            {accounts?.map((account) => (
-              <option key={account} value={account}>
-                {account}
-              </option>
-            ))}
-          </select>
-
-          <GetAccounts selectedAccount={selectedAccount} />
-          <TransactionButton selectedAccount={selectedAccount} />
+          <GetAccounts
+            walletConnectAccounts={accounts}
+            selectedNetwork={selectedNetwork}
+            selectedAccount={selectedAccount}
+            setSelectedAccount={setSelectedAccount}
+          />
+          <TransactionButton
+            selectedNetwork={selectedNetwork}
+            selectedAccount={selectedAccount}
+            accounts={accounts}
+          />
         </>
       ) : (
         <button onClick={handleConnect} disabled={isInitializing}>

@@ -3,7 +3,7 @@ import { BalanceItem, getBalance } from "@/utils/getBalance";
 import { networkMap } from "@/utils/networkMap";
 import { ChainId } from "@kadena/types";
 import * as encoding from "@walletconnect/encoding";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 interface IAccount {
   account: string;
@@ -17,17 +17,34 @@ interface IAccount {
   ];
 }
 export const GetAccounts = ({
+  walletConnectAccounts,
+  selectedNetwork,
   selectedAccount,
+  setSelectedAccount,
 }: {
-  selectedAccount?: string;
+  walletConnectAccounts?: string[];
+  selectedNetwork: keyof typeof networkMap;
+  selectedAccount?: {
+    account: string;
+    chain: string;
+  };
+  setSelectedAccount: any;
 }) => {
   const { client, session } = useWalletConnectClient();
 
   const [isLoading, setIsLoading] = useState(false);
   const [kadenaAccounts, setKadenaAccounts] = useState<IAccount[]>();
   const [balances, setBalances] = useState<BalanceItem[]>([]);
+  const [selectedWalletConnectAccount, setSelectedWalletConnectAccount] =
+    useState<string>("");
   const [onlyForCoinContract, setOnlyForCoinContract] =
     useState<boolean>(false);
+
+  useEffect(() => {
+    if (!walletConnectAccounts) return;
+
+    setSelectedWalletConnectAccount(walletConnectAccounts[0]);
+  }, [walletConnectAccounts]);
 
   const getBalances = (
     accounts: IAccount[],
@@ -53,7 +70,7 @@ export const GetAccounts = ({
   };
 
   const handleClick = async () => {
-    if (!selectedAccount) return;
+    if (!selectedWalletConnectAccount) return;
 
     setIsLoading(true);
     if (!client) {
@@ -71,16 +88,18 @@ export const GetAccounts = ({
       params: {
         accounts: [
           {
-            account: selectedAccount,
+            account: selectedWalletConnectAccount,
             contracts: onlyForCoinContract ? ["coin"] : undefined, // optional, when omitted the wallet returns all known fungible accounts
           },
         ],
       },
     };
 
-    console.info(`Calling kadena_getAccounts_v1 for ${selectedAccount}`);
+    console.info(
+      `Calling kadena_getAccounts_v1 for ${selectedWalletConnectAccount}`
+    );
 
-    const [chain, network] = selectedAccount.split(":");
+    const [chain, network] = selectedWalletConnectAccount.split(":");
 
     const response = await client?.request<{ accounts: IAccount[] }>({
       topic: session.topic,
@@ -93,20 +112,36 @@ export const GetAccounts = ({
     setIsLoading(false);
   };
 
+  console.log({ kadenaAccounts, selectedAccount });
+
   return (
     <div>
       <h2>Accounts</h2>
       <p>
-        <input
-          type="checkbox"
-          checked={onlyForCoinContract}
-          onChange={() => setOnlyForCoinContract(!onlyForCoinContract)}
-        ></input>
-        Get only for the coin contract
+        <select
+          onChange={(e) => setSelectedWalletConnectAccount(e.target.value)}
+        >
+          {walletConnectAccounts?.map((account) => (
+            <option key={account} value={account}>
+              {account}
+            </option>
+          ))}
+        </select>
+        <br />
+        <label>
+          <input
+            type="checkbox"
+            checked={onlyForCoinContract}
+            onChange={() => setOnlyForCoinContract(!onlyForCoinContract)}
+          ></input>
+          Get only for the coin contract
+        </label>
       </p>
+
       <button onClick={handleClick} disabled={isLoading}>
         {isLoading ? "Loading..." : "Get accounts"}
       </button>
+
       {kadenaAccounts &&
         kadenaAccounts.map((account) => {
           return (
@@ -126,22 +161,49 @@ export const GetAccounts = ({
                         <tr>
                           <th>Chain</th>
                           <th>Balance</th>
+                          <th></th>
                         </tr>
                       </thead>
 
                       <tbody>
-                        {kadenaAccount.chains.map((chain) => (
-                          <tr key={chain}>
-                            <td>{chain}</td>
-                            <td>
-                              {
-                                balances.find(
-                                  (balanceItem) => balanceItem.chain === chain
-                                )?.balance
+                        {kadenaAccount.chains.map((chain) => {
+                          const isSelectedAccount =
+                            selectedAccount?.account === kadenaAccount.name &&
+                            selectedAccount?.chain === chain;
+                          return (
+                            <tr
+                              key={chain}
+                              style={
+                                isSelectedAccount
+                                  ? { fontWeight: "bold" }
+                                  : undefined
                               }
-                            </td>
-                          </tr>
-                        ))}
+                            >
+                              <td>{chain}</td>
+                              <td>
+                                {
+                                  balances.find(
+                                    (balanceItem) => balanceItem.chain === chain
+                                  )?.balance
+                                }
+                              </td>
+                              <td>
+                                {!isSelectedAccount && (
+                                  <button
+                                    onClick={() =>
+                                      setSelectedAccount({
+                                        account: kadenaAccount.name,
+                                        chain,
+                                      })
+                                    }
+                                  >
+                                    Select account and chain for transfer
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
                       </tbody>
                     </table>
                   </div>

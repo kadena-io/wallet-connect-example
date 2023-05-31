@@ -1,17 +1,15 @@
-import { useWalletConnectClient } from "@/providers/ClientContextProvider";
-import { networkMap } from "@/utils/networkMap";
-import { onlyKey } from "@/utils/onlyKey";
-import { signWithWalletConnect } from "@/utils/signWithWalletConnect";
-import { PactCommand } from "@kadena/client";
-import { useState } from "react";
+import { useWalletConnectClient } from '@/providers/ClientContextProvider';
+import { signWithWalletConnect } from '@/utils/signWithWalletConnect';
+import { IAccount, ISigningRequest } from '@/types';
+import { useState } from 'react';
+import { IPactCommand, PactCommand } from '@kadena/client';
+import { onlyKey } from '@/utils/onlyKey';
+import { apiHost } from '@/utils/apiHost';
 
 export const TransactionButton = ({
-  selectedNetwork,
   selectedAccount,
 }: {
-  selectedNetwork: keyof typeof networkMap;
-  selectedAccount: any;
-  accounts?: any[];
+  selectedAccount?: IAccount;
 }) => {
   const { client, session } = useWalletConnectClient();
 
@@ -20,47 +18,66 @@ export const TransactionButton = ({
 
   const handleClick = async () => {
     if (!client) {
-      throw new Error("No client");
+      throw new Error('No client');
     }
 
     if (!session) {
-      throw new Error("No session");
+      throw new Error('No session');
     }
 
     if (!selectedAccount) {
-      throw new Error("No selected account to send from");
+      throw new Error('No selected account to send from');
     }
 
     if (!toAccount) {
-      throw new Error("No account to send to set");
+      throw new Error('No account to send to set');
     }
 
     if (!amount) {
-      throw new Error("No amount set");
+      throw new Error('No amount set');
     }
 
+    const pactDecimal = { decimal: `${amount}` };
+
     const pactCommand = new PactCommand();
-
-    pactCommand.code = `(coin.transfer "${selectedAccount.account}" "${toAccount}" ${amount})`;
-
+    pactCommand.code = `(coin.transfer "${
+      selectedAccount.account
+    }" "${toAccount}" ${amount.toFixed(6)})`;
     pactCommand
-      .addCap("coin.GAS", onlyKey(selectedAccount.account))
-      .addCap("coin.TRANSFER", onlyKey(selectedAccount.account), [
-        selectedAccount.account,
-        toAccount,
-        amount,
-      ])
       .setMeta(
         {
+          chainId: selectedAccount.chainId,
+          gasLimit: 1000,
+          gasPrice: 1.0e-6,
+          ttl: 10 * 60,
           sender: selectedAccount.account,
-          chainId: selectedAccount.chain,
         },
-        selectedNetwork
+        selectedAccount.network as IPactCommand['networkId'],
+      )
+      .addCap('coin.GAS', onlyKey(selectedAccount.account))
+      .addCap<any>( // @TODO remove any when @kadena/client is updated
+        'coin.TRANSFER',
+        onlyKey(selectedAccount.account), // pubKey of sender
+        selectedAccount.account, // account of sender
+        toAccount, // account of receiver
+        pactDecimal, // amount
       );
 
-    const result = await signWithWalletConnect(client, session, pactCommand);
+    const signedPactCommand = await signWithWalletConnect(
+      client,
+      session,
+      pactCommand,
+      onlyKey(selectedAccount.account),
+    );
 
-    console.log("signWithWalletConnect result:", result);
+    console.log(signedPactCommand);
+
+    const result = await signedPactCommand.local(
+      apiHost(pactCommand.publicMeta.chainId, pactCommand.networkId),
+      // { signatureVerification: false },
+    );
+
+    console.log('signWithWalletConnect result:', result);
   };
 
   return (
@@ -69,9 +86,9 @@ export const TransactionButton = ({
       {selectedAccount ? (
         <>
           <p>
-            <strong>Account:</strong> {selectedAccount?.account}
+            <strong>Send from:</strong> {selectedAccount?.account}
             <br />
-            <strong>Chain:</strong> {selectedAccount?.chain}
+            <strong>Chain:</strong> {selectedAccount?.chainId}
           </p>
 
           <p>
@@ -86,7 +103,7 @@ export const TransactionButton = ({
             <br />
 
             <label>
-              <strong>Amount:</strong>{" "}
+              <strong>Amount:</strong>{' '}
               <input
                 type="number"
                 onChange={(e) => setAmount(parseFloat(e.target.value))}

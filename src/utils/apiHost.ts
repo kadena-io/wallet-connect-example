@@ -1,4 +1,5 @@
-import { networkMap } from "./networkMap";
+import { networkMap } from './networkMap';
+import { IPactCommand } from '@kadena/client';
 
 /**
  * Composes the apiHost
@@ -9,9 +10,9 @@ import { networkMap } from "./networkMap";
  * @return
  */
 export function apiHost(
-  chainId: string = "1",
-  network: keyof typeof networkMap = "testnet04",
-  apiVersion: string = "0.0"
+  chainId: string = '1',
+  network: IPactCommand['networkId'] = 'testnet04',
+  apiVersion: string = '0.0',
 ): string {
   return `https://${networkMap[network].api}/chainweb/${apiVersion}/${network}/chain/${chainId}/pact`;
 }

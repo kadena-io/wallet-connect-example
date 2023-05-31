@@ -1,54 +1,36 @@
-import { useWalletConnectClient } from "@/providers/ClientContextProvider";
-import { BalanceItem, getBalance } from "@/utils/getBalance";
-import { networkMap } from "@/utils/networkMap";
-import { ChainId } from "@kadena/types";
-import * as encoding from "@walletconnect/encoding";
-import { Fragment, useEffect, useState } from "react";
+import { useWalletConnectClient } from '@/providers/ClientContextProvider';
+import { BalanceItem, getBalance } from '@/utils/getBalance';
+import { Fragment, useEffect, useState } from 'react';
+import { IAccount, IWalletConnectAccount } from '@/types';
+import { IPactCommand } from '@kadena/client';
 
-interface IAccount {
-  account: string;
-  contracts?: string[];
-  kadenaAccounts: [
-    {
-      name: string;
-      chains: ChainId[];
-      contract: string;
-    }
-  ];
-}
 export const GetAccounts = ({
-  walletConnectAccounts,
-  selectedNetwork,
   selectedAccount,
   setSelectedAccount,
 }: {
-  walletConnectAccounts?: string[];
-  selectedNetwork: keyof typeof networkMap;
-  selectedAccount?: {
-    account: string;
-    chain: string;
-  };
-  setSelectedAccount: any;
+  selectedAccount?: IAccount;
+  setSelectedAccount: (account: IAccount) => void;
 }) => {
-  const { client, session } = useWalletConnectClient();
+  const { client, session, accounts } = useWalletConnectClient();
 
   const [isLoading, setIsLoading] = useState(false);
-  const [kadenaAccounts, setKadenaAccounts] = useState<IAccount[]>();
+  const [kadenaAccounts, setKadenaAccounts] =
+    useState<IWalletConnectAccount[]>();
   const [balances, setBalances] = useState<BalanceItem[]>([]);
   const [selectedWalletConnectAccount, setSelectedWalletConnectAccount] =
-    useState<string>("");
+    useState<string>('');
   const [onlyForCoinContract, setOnlyForCoinContract] =
     useState<boolean>(false);
 
   useEffect(() => {
-    if (!walletConnectAccounts) return;
+    if (!accounts) return;
 
-    setSelectedWalletConnectAccount(walletConnectAccounts[0]);
-  }, [walletConnectAccounts]);
+    setSelectedWalletConnectAccount(accounts[0]);
+  }, [accounts]);
 
   const getBalances = (
-    accounts: IAccount[],
-    network: keyof typeof networkMap
+    accounts: IWalletConnectAccount[],
+    network: IPactCommand['networkId'],
   ) => {
     if (!accounts) return;
 
@@ -61,7 +43,7 @@ export const GetAccounts = ({
         });
         return acc;
       },
-      []
+      [],
     );
 
     Promise.all(balanceRequests).then((balances) => {
@@ -74,45 +56,48 @@ export const GetAccounts = ({
 
     setIsLoading(true);
     if (!client) {
-      throw new Error("No client");
+      throw new Error('No client');
     }
 
     if (!session) {
-      throw new Error("No session");
+      throw new Error('No session');
     }
 
     const accountsRequest = {
       id: 1,
-      jsonrpc: "2.0",
-      method: "kadena_getAccounts_v1",
+      jsonrpc: '2.0',
+      method: 'kadena_getAccounts_v1',
       params: {
         accounts: [
           {
             account: selectedWalletConnectAccount,
-            contracts: onlyForCoinContract ? ["coin"] : undefined, // optional, when omitted the wallet returns all known fungible accounts
+            contracts: onlyForCoinContract ? ['coin'] : undefined, // optional, when omitted the wallet returns all known fungible accounts
           },
         ],
       },
     };
 
     console.info(
-      `Calling kadena_getAccounts_v1 for ${selectedWalletConnectAccount}`
+      `Calling kadena_getAccounts_v1 for ${selectedWalletConnectAccount}`,
     );
 
-    const [chain, network] = selectedWalletConnectAccount.split(":");
+    const [chain, network] = selectedWalletConnectAccount.split(':') as [
+      string,
+      IPactCommand['networkId'],
+    ];
 
-    const response = await client?.request<{ accounts: IAccount[] }>({
+    const response = await client?.request<{
+      accounts: IWalletConnectAccount[];
+    }>({
       topic: session.topic,
       chainId: `${chain}:${network}`,
       request: accountsRequest,
     });
 
     setKadenaAccounts(response?.accounts);
-    getBalances(response?.accounts, network as keyof typeof networkMap);
+    getBalances(response?.accounts, network);
     setIsLoading(false);
   };
-
-  console.log({ kadenaAccounts, selectedAccount });
 
   return (
     <div>
@@ -121,7 +106,7 @@ export const GetAccounts = ({
         <select
           onChange={(e) => setSelectedWalletConnectAccount(e.target.value)}
         >
-          {walletConnectAccounts?.map((account) => (
+          {accounts?.map((account) => (
             <option key={account} value={account}>
               {account}
             </option>
@@ -139,76 +124,85 @@ export const GetAccounts = ({
       </p>
 
       <button onClick={handleClick} disabled={isLoading}>
-        {isLoading ? "Loading..." : "Get accounts"}
+        {isLoading ? 'Loading...' : 'Get accounts'}
       </button>
 
       {kadenaAccounts &&
         kadenaAccounts.map((account) => {
+          const [, network] = account.account.split(':') as [
+            string,
+            IPactCommand['networkId'],
+          ];
+
           return (
             <div key={account.account}>
               <h3>{account.account}</h3>
-              {account.kadenaAccounts.map((kadenaAccount) => (
-                <Fragment key={kadenaAccount.name}>
-                  <div>
-                    <strong>Account:</strong> {kadenaAccount.name}
-                  </div>
-                  <div>
-                    <strong>Contract:</strong> {kadenaAccount.contract}
-                  </div>
-                  <div>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Chain</th>
-                          <th>Balance</th>
-                          <th></th>
-                        </tr>
-                      </thead>
+              {account.kadenaAccounts.map((kadenaAccount) => {
+                return (
+                  <Fragment key={kadenaAccount.name}>
+                    <div>
+                      <strong>Account:</strong> {kadenaAccount.name}
+                    </div>
+                    <div>
+                      <strong>Contract:</strong> {kadenaAccount.contract}
+                    </div>
+                    <div>
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Chain</th>
+                            <th>Balance</th>
+                            <th></th>
+                          </tr>
+                        </thead>
 
-                      <tbody>
-                        {kadenaAccount.chains.map((chain) => {
-                          const isSelectedAccount =
-                            selectedAccount?.account === kadenaAccount.name &&
-                            selectedAccount?.chain === chain;
-                          return (
-                            <tr
-                              key={chain}
-                              style={
-                                isSelectedAccount
-                                  ? { fontWeight: "bold" }
-                                  : undefined
-                              }
-                            >
-                              <td>{chain}</td>
-                              <td>
-                                {
-                                  balances.find(
-                                    (balanceItem) => balanceItem.chain === chain
-                                  )?.balance
+                        <tbody>
+                          {kadenaAccount.chains.map((chain) => {
+                            const isSelectedAccount =
+                              selectedAccount?.account === kadenaAccount.name &&
+                              selectedAccount?.chainId === chain;
+                            return (
+                              <tr
+                                key={chain}
+                                style={
+                                  isSelectedAccount
+                                    ? { fontWeight: 'bold' }
+                                    : undefined
                                 }
-                              </td>
-                              <td>
-                                {!isSelectedAccount && (
-                                  <button
-                                    onClick={() =>
-                                      setSelectedAccount({
-                                        account: kadenaAccount.name,
-                                        chain,
-                                      })
-                                    }
-                                  >
-                                    Select account and chain for transfer
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </Fragment>
-              ))}
+                              >
+                                <td>{chain}</td>
+                                <td>
+                                  {
+                                    balances.find(
+                                      (balanceItem) =>
+                                        balanceItem.chain === chain,
+                                    )?.balance
+                                  }
+                                </td>
+                                <td>
+                                  {!isSelectedAccount && (
+                                    <button
+                                      onClick={() =>
+                                        setSelectedAccount({
+                                          network,
+                                          account: kadenaAccount.name,
+                                          chainId: chain,
+                                        })
+                                      }
+                                    >
+                                      Select account and chain for transfer
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </Fragment>
+                );
+              })}
             </div>
           );
         })}

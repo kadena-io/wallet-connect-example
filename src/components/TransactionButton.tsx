@@ -61,7 +61,8 @@ export const TransactionButton = ({
         selectedAccount.account, // account of sender
         toAccount, // account of receiver
         pactDecimal, // amount
-      );
+      )
+      .createCommand();
 
     const signedPactCommand = await signWithWalletConnect(
       client,
@@ -70,14 +71,14 @@ export const TransactionButton = ({
       onlyKey(selectedAccount.account),
     );
 
-    console.log(signedPactCommand);
+    console.log({ signedPactCommand });
 
-    const result = await signedPactCommand.local(
+    const localResult = await signedPactCommand.local(
       apiHost(pactCommand.publicMeta.chainId, pactCommand.networkId),
       // { signatureVerification: false },
     );
 
-    console.log('signWithWalletConnect result:', result);
+    console.log('signWithWalletConnect localResult:', localResult);
   };
 
   return (

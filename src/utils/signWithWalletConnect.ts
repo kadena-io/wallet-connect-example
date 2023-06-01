@@ -36,6 +36,7 @@ export async function signWithWalletConnect(
         };
       }),
     ),
+    nonce: '1', // @TODO: Get nonce from IPactCommand
     chainId: pactCommand.publicMeta.chainId,
     gasLimit: pactCommand.publicMeta.gasLimit,
     gasPrice: pactCommand.publicMeta.gasPrice,
@@ -50,7 +51,7 @@ export async function signWithWalletConnect(
     params: signingRequest,
   };
 
-  console.log(transactionRequest);
+  console.log({ transactionRequest });
 
   const response = await client
     .request<ISigningResponse>({
@@ -59,6 +60,8 @@ export async function signWithWalletConnect(
       request: transactionRequest,
     })
     .catch((e) => console.log('Error signing transaction:', e));
+
+  console.log('Response from client.request:', response);
 
   const signatures = response?.body.sigs.map((sig) => {
     return {

@@ -5,6 +5,9 @@ import { useState } from 'react';
 import { IPactCommand, PactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
 import { apiHost } from '@/utils/apiHost';
+import { local } from '@kadena/chainweb-node-client';
+import { ICommand } from '@kadena/types';
+import { PactNumber } from '@kadena/pactjs';
 
 export const TransactionButton = ({
   selectedAccount,
@@ -16,7 +19,11 @@ export const TransactionButton = ({
   const [amount, setAmount] = useState<number>(0);
   const [toAccount, setToAccount] = useState<string | undefined>();
 
-  const handleClick = async () => {
+  const buildAndSignTransaction = async (): Promise<{
+    signedPactCommand: ICommand;
+    chainId: any;
+    networkId: any;
+  }> => {
     if (!client) {
       throw new Error('No client');
     }
@@ -37,12 +44,18 @@ export const TransactionButton = ({
       throw new Error('No amount set');
     }
 
+    const decimalFormatter = new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 12,
+    });
+
     const pactDecimal = { decimal: `${amount}` };
 
     const pactCommand = new PactCommand();
     pactCommand.code = `(coin.transfer "${
       selectedAccount.account
-    }" "${toAccount}" ${amount.toFixed(6)})`;
+    }" "${toAccount}" ${new PactNumber(amount).toDecimal()})`;
+
     pactCommand
       .setMeta(
         {
@@ -55,7 +68,7 @@ export const TransactionButton = ({
         selectedAccount.network as IPactCommand['networkId'],
       )
       .addCap('coin.GAS', onlyKey(selectedAccount.account))
-      .addCap<any>( // @TODO remove any when @kadena/client is updated
+      .addCap(
         'coin.TRANSFER',
         onlyKey(selectedAccount.account), // pubKey of sender
         selectedAccount.account, // account of sender
@@ -68,14 +81,23 @@ export const TransactionButton = ({
       client,
       session,
       pactCommand,
-      onlyKey(selectedAccount.account),
     );
 
     console.log({ signedPactCommand });
+    return {
+      signedPactCommand,
+      chainId: pactCommand.publicMeta.chainId,
+      networkId: pactCommand.networkId,
+    };
+  };
 
-    const localResult = await signedPactCommand.local(
-      apiHost(pactCommand.publicMeta.chainId, pactCommand.networkId),
-      // { signatureVerification: false },
+  const handleClickLocal = async () => {
+    const { signedPactCommand, chainId, networkId } =
+      await buildAndSignTransaction();
+
+    const localResult = await local(
+      signedPactCommand,
+      apiHost(chainId, networkId),
     );
 
     console.log('signWithWalletConnect localResult:', localResult);
@@ -112,7 +134,9 @@ export const TransactionButton = ({
             </label>
           </p>
 
-          <button onClick={handleClick}>Send transaction</button>
+          <button onClick={handleClickLocal}>Validate transaction</button>
+
+          {/* <button onClick={handleClickSend}>Validate transaction</button> */}
         </>
       ) : (
         <div>Select an account to send the transfer from</div>

@@ -1,5 +1,6 @@
-import { IPactCommand, PactCommand } from '@kadena/client';
+import { PactCommand } from '@kadena/client';
 import { apiHost } from './apiHost';
+import { networkMap } from './networkMap';
 import { ChainId } from '@kadena/types';
 
 export interface BalanceItem {
@@ -10,7 +11,7 @@ export interface BalanceItem {
 
 export async function getBalance(
   account: string,
-  network: IPactCommand['networkId'],
+  network: keyof typeof networkMap,
   chainId: ChainId,
 ): Promise<BalanceItem> {
   const pactCommand = new PactCommand();

@@ -1,14 +1,11 @@
 import { SessionTypes } from '@walletconnect/types';
 import Client from '@walletconnect/sign-client';
 import { ISigningRequest } from '@/types';
-import { ISignatureJson } from '@kadena/types';
+import { ICommand, ISignatureJson } from '@kadena/types';
 import { PactCommand } from '@kadena/client';
 
 interface ISigningResponse {
-  body: {
-    cmd: string;
-    sigs: ISignatureJson[];
-  };
+  body: ICommand;
 }
 
 export function createWalletConnectConnection() {}
@@ -17,8 +14,7 @@ export async function signWithWalletConnect(
   client: Client,
   session: SessionTypes.Struct,
   pactCommand: PactCommand,
-  pubKey: string,
-): Promise<PactCommand> {
+): Promise<ICommand> {
   const signingRequest: ISigningRequest = {
     code: pactCommand.code,
     data: pactCommand.data,
@@ -36,7 +32,7 @@ export async function signWithWalletConnect(
         };
       }),
     ),
-    nonce: '1', // @TODO: Get nonce from IPactCommand
+    nonce: pactCommand.nonce,
     chainId: pactCommand.publicMeta.chainId,
     gasLimit: pactCommand.publicMeta.gasLimit,
     gasPrice: pactCommand.publicMeta.gasPrice,
@@ -63,22 +59,34 @@ export async function signWithWalletConnect(
 
   console.log('Response from client.request:', response);
 
-  const signatures = response?.body.sigs.map((sig) => {
-    return {
-      pubKey,
-      sig: sig.sig,
-    };
-  });
+  // Since the nonce is overwritten by some wallets we cannot just get the signatures from the response.
+  //
+  // Because the nonce in the wallet is different from what we set in our dApp, the signatures
+  // won't be valid, and also the hash would be different. Ideally we would compare the hash from before and after
+  // signing to make sure our transactions are not tampered with.
 
-  if (!signatures) {
+  // Instead we return the complete response, which is ready for sending to the chain.
+
+  // const signatures = response?.body.sigs.map((sig) => {
+  //   return {
+  //     pubKey,
+  //     sig: sig.sig,
+  //   };
+  // });
+
+  // if (!signatures) {
+  //   throw new Error('Error signing transaction');
+  // }
+
+  // pactCommand.addSignatures(...signatures);
+
+  // if (!response?.body?.cmd || !response?.body?.sigs) {
+  //   throw new Error('Error signing transaction');
+  // }
+
+  if (!response?.body) {
     throw new Error('Error signing transaction');
   }
 
-  pactCommand.addSignatures(...signatures);
-
-  if (!response?.body?.cmd || !response?.body?.sigs) {
-    throw new Error('Error signing transaction');
-  }
-
-  return pactCommand;
+  return response.body;
 }

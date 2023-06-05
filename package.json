@@ -9,7 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@kadena/client": "^0.2.11",
+    "@kadena/chainweb-node-client": "^0.3.0",
+    "@kadena/client": "^0.3.0",
     "@kadena/pactjs": "^0.2.5",
     "@kadena/types": "^0.2.3",
     "@types/node": "18.15.11",

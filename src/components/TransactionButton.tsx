@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { IPactCommand, PactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
 import { apiHost } from '@/utils/apiHost';
-import { local } from '@kadena/chainweb-node-client';
+import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ICommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
 
@@ -18,6 +18,9 @@ export const TransactionButton = ({
 
   const [amount, setAmount] = useState<number>(0);
   const [toAccount, setToAccount] = useState<string | undefined>();
+  const [transaction, setTransaction] = useState<any>();
+  const [localResult, setLocalResult] = useState<any>();
+  const [sendResult, setSendResult] = useState<any>();
 
   const buildAndSignTransaction = async (): Promise<{
     signedPactCommand: ICommand;
@@ -43,11 +46,6 @@ export const TransactionButton = ({
     if (!amount) {
       throw new Error('No amount set');
     }
-
-    const decimalFormatter = new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: 1,
-      maximumFractionDigits: 12,
-    });
 
     const pactDecimal = { decimal: `${amount}` };
 
@@ -83,7 +81,12 @@ export const TransactionButton = ({
       pactCommand,
     );
 
-    console.log({ signedPactCommand });
+    setTransaction({
+      signedPactCommand,
+      chainId: pactCommand.publicMeta.chainId,
+      networkId: pactCommand.networkId,
+    });
+
     return {
       signedPactCommand,
       chainId: pactCommand.publicMeta.chainId,
@@ -100,7 +103,17 @@ export const TransactionButton = ({
       apiHost(chainId, networkId),
     );
 
-    console.log('signWithWalletConnect localResult:', localResult);
+    setLocalResult(localResult);
+  };
+
+  const handleClickSend = async () => {
+    const { signedPactCommand, chainId, networkId } = transaction;
+    const sendResult = await send(
+      createSendRequest(signedPactCommand),
+      apiHost(chainId, networkId),
+    );
+
+    setSendResult(sendResult);
   };
 
   return (
@@ -136,7 +149,21 @@ export const TransactionButton = ({
 
           <button onClick={handleClickLocal}>Validate transaction</button>
 
-          {/* <button onClick={handleClickSend}>Validate transaction</button> */}
+          {localResult && (
+            <>
+              <h3>Local result</h3>
+              <pre>{JSON.stringify(localResult, null, 2)}</pre>
+            </>
+          )}
+
+          <button onClick={handleClickSend}>Send transaction</button>
+
+          {sendResult && (
+            <>
+              <h3>Send result</h3>
+              <pre>{JSON.stringify(sendResult, null, 2)}</pre>
+            </>
+          )}
         </>
       ) : (
         <div>Select an account to send the transfer from</div>

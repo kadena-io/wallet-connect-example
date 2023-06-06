@@ -153,10 +153,9 @@ export const TransactionButton = ({
             <>
               <h3>Local result</h3>
               <pre>{JSON.stringify(localResult, null, 2)}</pre>
+              <button onClick={handleClickSend}>Send transaction</button>
             </>
           )}
-
-          <button onClick={handleClickSend}>Send transaction</button>
 
           {sendResult && (
             <>

@@ -5,7 +5,7 @@ with Kadena and Wallet Connect V2.
 
 At the moment some wallets overwrite the nonce that's sent in the
 SigningRequest. Ideally you would like to just get the signature from the
-wallet, and sign the transaction that you created in the dApp, but that's not
+wallet, and send the transaction that you created in the dApp, but that's not
 possible when the nonce gets overwritten before the signing happens. To
 circumvent this, we currently send the complete (and signed) transaction that is
 returned from the wallet.

@@ -1,19 +1,15 @@
 import { GetAccounts } from '@/components/GetAccounts';
-import { TransactionButton } from '@/components/TransactionButton';
+import { Transaction } from '@/components/Transaction';
 import { useWalletConnectClient } from '@/providers/ClientContextProvider';
-import { IAccount } from '@/types';
-import { networkMap } from '@/utils/networkMap';
-import { NetworkId } from '@kadena/types';
+import { IAccount, TSigningType } from '@/types';
 import { useState } from 'react';
 
 function App() {
   const { session, connect, disconnect, isInitializing } =
     useWalletConnectClient();
 
-  const [selectedNetwork, setSelectedNetwork] =
-    useState<NetworkId>('mainnet01');
-
   const [selectedAccount, setSelectedAccount] = useState<IAccount>();
+  const [signingType, setSigningType] = useState<TSigningType>('sign');
 
   const handleConnect = () => {
     connect();
@@ -25,12 +21,40 @@ function App() {
       {session ? (
         <>
           <button onClick={disconnect}>Disconnect</button>
-
           <GetAccounts
             selectedAccount={selectedAccount}
             setSelectedAccount={setSelectedAccount}
           />
-          <TransactionButton selectedAccount={selectedAccount} />
+          {selectedAccount && (
+            <>
+              <hr />
+              <h3>Create and sign transaction</h3>
+              <strong>Select signing type</strong>
+              <br />
+              <label>
+                <input
+                  type="radio"
+                  checked={signingType === 'sign'}
+                  onChange={() => setSigningType('sign')}
+                />
+                kadena_sign_v1
+              </label>
+              <br />
+              <label>
+                <input
+                  type="radio"
+                  checked={signingType === 'quicksign'}
+                  onChange={() => setSigningType('quicksign')}
+                />
+                kadena_quicksign_v1
+              </label>
+
+              <Transaction
+                selectedAccount={selectedAccount}
+                type={signingType}
+              />
+            </>
+          )}
         </>
       ) : (
         <button onClick={handleConnect} disabled={isInitializing}>

@@ -101,7 +101,7 @@ export const GetAccounts = ({
 
   return (
     <div>
-      <h2>Accounts</h2>
+      <h3>Accounts</h3>
       <p>
         <select
           onChange={(e) => setSelectedWalletConnectAccount(e.target.value)}

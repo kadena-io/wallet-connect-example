@@ -1,6 +1,6 @@
 import { useWalletConnectClient } from '@/providers/ClientContextProvider';
 import { signWithWalletConnect } from '@/utils/signWithWalletConnect';
-import { IAccount, ISigningRequest } from '@/types';
+import { IAccount } from '@/types';
 import { useState } from 'react';
 import { IPactCommand, PactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
@@ -8,11 +8,14 @@ import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ICommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
+import { quickSignWithWalletConnect } from '@/utils/quickSignWithWalletConnect';
 
-export const TransactionButton = ({
+export const Transaction = ({
   selectedAccount,
+  type,
 }: {
   selectedAccount?: IAccount;
+  type: string;
 }) => {
   const { client, session } = useWalletConnectClient();
 
@@ -75,11 +78,22 @@ export const TransactionButton = ({
       )
       .createCommand();
 
-    const signedPactCommand = await signWithWalletConnect(
-      client,
-      session,
-      pactCommand,
-    );
+    let signedPactCommand;
+    if (type === 'sign') {
+      signedPactCommand = await signWithWalletConnect(
+        client,
+        session,
+        pactCommand,
+      );
+    }
+
+    if (type === 'quicksign') {
+      signedPactCommand = await quickSignWithWalletConnect(
+        client,
+        session,
+        pactCommand,
+      );
+    }
 
     setTransaction({
       signedPactCommand,
@@ -88,7 +102,7 @@ export const TransactionButton = ({
     });
 
     return {
-      signedPactCommand,
+      signedPactCommand: signedPactCommand!,
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     };
@@ -118,7 +132,6 @@ export const TransactionButton = ({
 
   return (
     <>
-      <h2>Transaction</h2>
       {selectedAccount ? (
         <>
           <p>

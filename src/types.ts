@@ -37,3 +37,5 @@ export interface IAccount {
   account: string;
   chainId: ChainId;
 }
+
+export type TSigningType = 'sign' | 'quicksign';

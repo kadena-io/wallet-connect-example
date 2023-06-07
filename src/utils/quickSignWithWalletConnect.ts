@@ -2,10 +2,19 @@ import { SessionTypes } from '@walletconnect/types';
 import Client from '@walletconnect/sign-client';
 import { ISigningRequest } from '@/types';
 import { ICommand, ISignatureJson } from '@kadena/types';
-import { IQuickSignRequestBody, PactCommand } from '@kadena/client';
+import {
+  IQuickSignRequestBody,
+  IUnsignedQuicksignTransaction,
+  PactCommand,
+} from '@kadena/client';
 
 interface ISigningResponse {
   body: ICommand;
+}
+
+// IQuickSignRequestBody has cmdSigDatas, while KIP0017 has cmdSigs
+interface ITempQuickSignRequestBody {
+  commandSigDatas: IUnsignedQuicksignTransaction[];
 }
 
 export async function quickSignWithWalletConnect(
@@ -17,8 +26,8 @@ export async function quickSignWithWalletConnect(
     throw new Error('No command to sign');
   }
 
-  const quickSignRequest: IQuickSignRequestBody = {
-    cmdSigDatas: [
+  const quickSignRequest: ITempQuickSignRequestBody = {
+    commandSigDatas: [
       {
         cmd: pactCommand.cmd,
         sigs: pactCommand.signers.map((signer, i) => {

@@ -136,7 +136,7 @@ export const GetAccounts = ({
 
           return (
             <div key={account.account}>
-              <h3>{account.account}</h3>
+              <h4>{account.account}</h4>
               {account.kadenaAccounts.map((kadenaAccount) => {
                 return (
                   <Fragment key={kadenaAccount.name}>

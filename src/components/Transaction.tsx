@@ -1,5 +1,5 @@
 import { useWalletConnectClient } from '@/providers/ClientContextProvider';
-import { signWithWalletConnect } from '@/utils/signWithWalletConnect';
+import { createWalletConnectSign } from '@/utils/signWithWalletConnect';
 import { IAccount } from '@/types';
 import { useState } from 'react';
 import { IPactCommand, PactCommand } from '@kadena/client';
@@ -8,7 +8,7 @@ import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ICommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
-import { quickSignWithWalletConnect } from '@/utils/quickSignWithWalletConnect';
+import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
 
 export const Transaction = ({
   selectedAccount,
@@ -50,6 +50,12 @@ export const Transaction = ({
       throw new Error('No amount set');
     }
 
+    const signWithWalletConnect = createWalletConnectSign(client, session);
+    const quicksignWithWalletConnect = createWalletConnectQuicksign(
+      client,
+      session,
+    );
+
     const pactDecimal = { decimal: `${amount}` };
 
     const pactCommand = new PactCommand();
@@ -78,31 +84,28 @@ export const Transaction = ({
       )
       .createCommand();
 
-    let signedPactCommand;
+    let signedPactCommands;
     if (type === 'sign') {
-      signedPactCommand = await signWithWalletConnect(
-        client,
-        session,
-        pactCommand,
-      );
+      signedPactCommands = await signWithWalletConnect(pactCommand);
     }
 
     if (type === 'quicksign') {
-      signedPactCommand = await quickSignWithWalletConnect(
-        client,
-        session,
-        pactCommand,
-      );
+      signedPactCommands = await quicksignWithWalletConnect(pactCommand);
     }
 
+    if (!signedPactCommands) {
+      throw new Error('No signed pact commands');
+    }
+
+    // In this example we only support one command, so we get the first one
     setTransaction({
-      signedPactCommand,
+      signedPactCommand: signedPactCommands[0],
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     });
 
     return {
-      signedPactCommand: signedPactCommand!,
+      signedPactCommand: signedPactCommands[0],
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     };

@@ -8,7 +8,7 @@ import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ICommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
-import { createWalletConnectQuicksign } from '@/utils/quickSignWithWalletConnect';
+import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
 
 export const Transaction = ({
   selectedAccount,

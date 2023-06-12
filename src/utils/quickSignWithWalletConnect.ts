@@ -1,15 +1,12 @@
 import { SessionTypes } from '@walletconnect/types';
 import Client from '@walletconnect/sign-client';
-import { ICommand } from '@kadena/types';
-import { IQuicksignResponse, PactCommand } from '@kadena/client';
-
-export interface ISignFunction {
-  (...transactions: PactCommand[]): Promise<ICommand[]>;
-}
+import { IQuicksignResponse } from '@kadena/client';
+import { ISignFunction } from './ISignFunction';
 
 export function createWalletConnectQuicksign(
   client: Client,
   session: SessionTypes.Struct,
+  walletConnectChainId: string,
 ) {
   const quicksignWithWalletConnect: ISignFunction = async (...transactions) => {
     if (!transactions) {
@@ -45,7 +42,7 @@ export function createWalletConnectQuicksign(
     const response = await client
       .request<IQuicksignResponse>({
         topic: session.topic,
-        chainId: `kadena:${transactions[0].networkId}`,
+        chainId: walletConnectChainId,
         request: transactionRequest,
       })
       .catch((e) => console.log('Error signing transaction:', e));
@@ -76,9 +73,7 @@ export function createWalletConnectQuicksign(
       throw new Error('Error signing transaction');
     }
 
-    return transactions.map(
-      (pactCommand) => pactCommand.createCommand() as ICommand,
-    );
+    return transactions;
   };
 
   return quicksignWithWalletConnect;

@@ -8,7 +8,7 @@ import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ICommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
-import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
+import { createWalletConnectQuicksign } from '@/utils/quickSignWithWalletConnect';
 
 export const Transaction = ({
   selectedAccount,
@@ -56,8 +56,6 @@ export const Transaction = ({
       session,
     );
 
-    const pactDecimal = { decimal: `${amount}` };
-
     const pactCommand = new PactCommand();
     pactCommand.code = `(coin.transfer "${
       selectedAccount.account
@@ -80,13 +78,13 @@ export const Transaction = ({
         onlyKey(selectedAccount.account), // pubKey of sender
         selectedAccount.account, // account of sender
         toAccount, // account of receiver
-        pactDecimal, // amount
+        { decimal: `${amount}` }, // amount
       )
       .createCommand();
 
-    let signedPactCommands;
+    let signedPactCommands: PactCommand[] | undefined;
     if (type === 'sign') {
-      signedPactCommands = await signWithWalletConnect(pactCommand);
+      signedPactCommands = [await signWithWalletConnect(pactCommand)]
     }
 
     if (type === 'quicksign') {

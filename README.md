@@ -4,11 +4,11 @@ with Kadena and Wallet Connect V2.
 ## Current issues
 
 At the moment some wallets overwrite the nonce that's sent in the
-SigningRequest. Ideally you would like to just get the signature from the
-wallet, and send the transaction that you created in the dApp, but that's not
-possible when the nonce gets overwritten before the signing happens. To
-circumvent this, we currently send the complete (and signed) transaction that is
-returned from the wallet.
+SigningRequest. For `sign` we allow this, as the wallet should be able to alter
+for example the gasPrice and gasLimit. For `quickSign` we explicitly check if
+the hash of the unsigned transaction matches the one from the signed
+transaction. By doing this you're 100% sure that the transaction that was sent
+from the dApp is the transaction that is signed by the wallet
 
 ## Getting Started
 

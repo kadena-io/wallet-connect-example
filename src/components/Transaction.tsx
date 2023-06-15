@@ -6,7 +6,7 @@ import { IPactCommand, PactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
 import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
-import { ICommand } from '@kadena/types';
+import { IUnsignedCommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
 import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
 
@@ -26,7 +26,7 @@ export const Transaction = ({
   const [sendResult, setSendResult] = useState<any>();
 
   const buildAndSignTransaction = async (): Promise<{
-    signedPactCommand: ICommand;
+    signedPactCommand: IUnsignedCommand;
     chainId: any;
     networkId: any;
   }> => {
@@ -50,10 +50,15 @@ export const Transaction = ({
       throw new Error('No amount set');
     }
 
-    const signWithWalletConnect = createWalletConnectSign(client, session);
+    const signWithWalletConnect = createWalletConnectSign(
+      client,
+      session,
+      selectedAccount.walletConnectChainId,
+    );
     const quicksignWithWalletConnect = createWalletConnectQuicksign(
       client,
       session,
+      selectedAccount.walletConnectChainId,
     );
 
     const pactCommand = new PactCommand();
@@ -79,12 +84,11 @@ export const Transaction = ({
         selectedAccount.account, // account of sender
         toAccount, // account of receiver
         { decimal: `${amount}` }, // amount
-      )
-      .createCommand();
+      );
 
     let signedPactCommands: PactCommand[] | undefined;
     if (type === 'sign') {
-      signedPactCommands = [await signWithWalletConnect(pactCommand)]
+      signedPactCommands = [await signWithWalletConnect(pactCommand)];
     }
 
     if (type === 'quicksign') {
@@ -95,15 +99,19 @@ export const Transaction = ({
       throw new Error('No signed pact commands');
     }
 
+    const signedPactCommand = signedPactCommands[0].createCommand();
+
     // In this example we only support one command, so we get the first one
     setTransaction({
-      signedPactCommand: signedPactCommands[0],
+      signedPactCommand,
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     });
 
+    console.log(signedPactCommand);
+
     return {
-      signedPactCommand: signedPactCommands[0],
+      signedPactCommand,
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     };
@@ -159,23 +167,36 @@ export const Transaction = ({
                 onChange={(e) => setAmount(parseFloat(e.target.value))}
               />
             </label>
+            <br />
+            <button onClick={handleClickLocal}>
+              Sign and validate transaction
+            </button>
           </p>
 
-          <button onClick={handleClickLocal}>Validate transaction</button>
-
           {localResult && (
-            <>
-              <h3>Local result</h3>
-              <pre>{JSON.stringify(localResult, null, 2)}</pre>
-              <button onClick={handleClickSend}>Send transaction</button>
-            </>
+            <p>
+              <details>
+                <summary>Validation result</summary>
+                <pre>{JSON.stringify(localResult, null, 2)}</pre>
+              </details>
+              <br />
+              {localResult.result.status === 'success' ? (
+                <button onClick={handleClickSend}>Send transaction</button>
+              ) : (
+                <strong>
+                  Validating transaction failed, cannot send transaction
+                </strong>
+              )}
+            </p>
           )}
 
           {sendResult && (
-            <>
-              <h3>Send result</h3>
-              <pre>{JSON.stringify(sendResult, null, 2)}</pre>
-            </>
+            <p>
+              <details>
+                <summary>Send result</summary>
+                <pre>{JSON.stringify(sendResult, null, 2)}</pre>
+              </details>
+            </p>
           )}
         </>
       ) : (

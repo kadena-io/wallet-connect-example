@@ -2,11 +2,12 @@ import { SessionTypes } from '@walletconnect/types';
 import Client from '@walletconnect/sign-client';
 import { IQuicksignResponse } from '@kadena/client';
 import { ISignFunction } from './ISignFunction';
+import { TWalletConnectChainId } from '@/types';
 
 export function createWalletConnectQuicksign(
   client: Client,
   session: SessionTypes.Struct,
-  walletConnectChainId: string,
+  walletConnectChainId: TWalletConnectChainId,
 ) {
   const quicksignWithWalletConnect: ISignFunction = async (...transactions) => {
     if (!transactions) {

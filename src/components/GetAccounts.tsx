@@ -1,7 +1,11 @@
 import { useWalletConnectClient } from '@/providers/ClientContextProvider';
 import { BalanceItem, getBalance } from '@/utils/getBalance';
 import { Fragment, useEffect, useState } from 'react';
-import { IAccount, IWalletConnectAccount } from '@/types';
+import {
+  IAccount,
+  IWalletConnectAccount,
+  TWalletConnectChainId,
+} from '@/types';
 import { IPactCommand } from '@kadena/client';
 
 export const GetAccounts = ({
@@ -41,6 +45,7 @@ export const GetAccounts = ({
             acc.push(getBalance(kadenaAccount.name, network, chain));
           });
         });
+
         return acc;
       },
       [],
@@ -129,10 +134,10 @@ export const GetAccounts = ({
 
       {kadenaAccounts &&
         kadenaAccounts.map((account) => {
-          const [, network] = account.account.split(':') as [
-            string,
-            IPactCommand['networkId'],
-          ];
+          const splitted = account.account.split(':');
+          const walletConnectChainId =
+            `${splitted[0]}:${splitted[1]}` as TWalletConnectChainId;
+          const network = splitted[1] as IPactCommand['networkId'];
 
           return (
             <div key={account.account}>
@@ -161,6 +166,7 @@ export const GetAccounts = ({
                             const isSelectedAccount =
                               selectedAccount?.account === kadenaAccount.name &&
                               selectedAccount?.chainId === chain;
+
                             return (
                               <tr
                                 key={chain}
@@ -184,6 +190,7 @@ export const GetAccounts = ({
                                     <button
                                       onClick={() =>
                                         setSelectedAccount({
+                                          walletConnectChainId,
                                           network,
                                           account: kadenaAccount.name,
                                           chainId: chain,

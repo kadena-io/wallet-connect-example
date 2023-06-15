@@ -1,6 +1,6 @@
 import { SessionTypes } from '@walletconnect/types';
 import Client from '@walletconnect/sign-client';
-import { ISigningRequest } from '@/types';
+import { ISigningRequest, TWalletConnectChainId } from '@/types';
 import { ICommand, PactCode } from '@kadena/types';
 import { ISignFunction, ISignSingleFunction } from './ISignFunction';
 import { PactCommand } from '@kadena/client';
@@ -12,7 +12,7 @@ interface ISigningResponse {
 export function createWalletConnectSign(
   client: Client,
   session: SessionTypes.Struct,
-  walletConnectChainId: string,
+  walletConnectChainId: TWalletConnectChainId,
 ) {
   const signWithWalletConnect: ISignSingleFunction = async (transaction) => {
     const signingRequest: ISigningRequest = {
@@ -63,12 +63,15 @@ export function createWalletConnectSign(
 
     const { cmd, sigs } = response.body;
 
-    transaction.signers = sigs.map((sig, i) => ({
-      ...transaction.signers[i],
-      sig: sig.sig,
-    }));
+    transaction.addSignatures(
+      ...sigs.map((sig, i) => ({
+        ...transaction.signers[i],
+        sig: sig.sig,
+      })),
+    );
 
     transaction.cmd = cmd;
+
     return transaction;
   };
 

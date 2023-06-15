@@ -1,4 +1,4 @@
-import { ChainId, ISigningCap, NetworkId } from '@kadena/types';
+import { ChainId, ISigningCap } from '@kadena/types';
 import { networkMap } from './utils/networkMap';
 import { IPactCommand } from '@kadena/client';
 
@@ -33,9 +33,12 @@ export interface IWalletConnectAccount {
 }
 
 export interface IAccount {
-  network: IPactCommand['networkId'];
-  account: string;
-  chainId: ChainId;
+  walletConnectChainId: TWalletConnectChainId;
+  network: IPactCommand['networkId']; // Kadena network (mainnet, testnet, devnet)
+  account: string; // Kadena account
+  chainId: ChainId; // Kadena ChainId
 }
 
 export type TSigningType = 'sign' | 'quicksign';
+
+export type TWalletConnectChainId = `kadena:${keyof typeof networkMap}`; //kadena:mainnet01, kadena:testnet04, kadena:development

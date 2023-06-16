@@ -1,9 +1,10 @@
 import { PactCommand } from '@kadena/client';
+import { ICommand, IUnsignedCommand } from '@kadena/types';
 
 export interface ISignFunction {
-  <T extends PactCommand[]>(...transactions: T): Promise<T>;
+  (...transactions: PactCommand[]): Promise<(ICommand | IUnsignedCommand)[]>;
 }
 
 export interface ISignSingleFunction {
-  <T extends PactCommand>(transaction: T): Promise<T>;
+  (transaction: PactCommand): Promise<ICommand | IUnsignedCommand>;
 }

@@ -74,7 +74,7 @@ export function createWalletConnectQuicksign(
       throw new Error('Error signing transaction');
     }
 
-    return transactions;
+    return transactions.map((transaction) => transaction.createCommand());
   };
 
   return quicksignWithWalletConnect;

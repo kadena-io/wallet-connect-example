@@ -6,9 +6,10 @@ import { IPactCommand, PactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
 import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
-import { IUnsignedCommand } from '@kadena/types';
+import { ChainId, ICommand, IUnsignedCommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
 import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
+import { networkMap } from '@/utils/networkMap';
 
 export const Transaction = ({
   selectedAccount,
@@ -27,8 +28,8 @@ export const Transaction = ({
 
   const buildAndSignTransaction = async (): Promise<{
     signedPactCommand: IUnsignedCommand;
-    chainId: any;
-    networkId: any;
+    chainId: ChainId;
+    networkId: keyof typeof networkMap;
   }> => {
     if (!client) {
       throw new Error('No client');
@@ -86,7 +87,7 @@ export const Transaction = ({
         { decimal: `${amount}` }, // amount
       );
 
-    let signedPactCommands: PactCommand[] | undefined;
+    let signedPactCommands: (ICommand | IUnsignedCommand)[] = [];
     if (type === 'sign') {
       signedPactCommands = [await signWithWalletConnect(pactCommand)];
     }
@@ -95,11 +96,11 @@ export const Transaction = ({
       signedPactCommands = await quicksignWithWalletConnect(pactCommand);
     }
 
-    if (!signedPactCommands) {
+    if (signedPactCommands.length === 0) {
       throw new Error('No signed pact commands');
     }
 
-    const signedPactCommand = signedPactCommands[0].createCommand();
+    const signedPactCommand = signedPactCommands[0];
 
     // In this example we only support one command, so we get the first one
     setTransaction({
@@ -107,8 +108,6 @@ export const Transaction = ({
       chainId: pactCommand.publicMeta.chainId,
       networkId: pactCommand.networkId,
     });
-
-    console.log(signedPactCommand);
 
     return {
       signedPactCommand,
@@ -174,7 +173,7 @@ export const Transaction = ({
           </p>
 
           {localResult && (
-            <p>
+            <>
               <details>
                 <summary>Validation result</summary>
                 <pre>{JSON.stringify(localResult, null, 2)}</pre>
@@ -187,16 +186,14 @@ export const Transaction = ({
                   Validating transaction failed, cannot send transaction
                 </strong>
               )}
-            </p>
+            </>
           )}
 
           {sendResult && (
-            <p>
-              <details>
-                <summary>Send result</summary>
-                <pre>{JSON.stringify(sendResult, null, 2)}</pre>
-              </details>
-            </p>
+            <details>
+              <summary>Send result</summary>
+              <pre>{JSON.stringify(sendResult, null, 2)}</pre>
+            </details>
           )}
         </>
       ) : (

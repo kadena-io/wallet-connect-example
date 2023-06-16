@@ -15,6 +15,8 @@ export function createWalletConnectSign(
   walletConnectChainId: TWalletConnectChainId,
 ) {
   const signWithWalletConnect: ISignSingleFunction = async (transaction) => {
+    transaction.createCommand(); // this will generate the nonce that we pass below
+
     const signingRequest: ISigningRequest = {
       code: transaction.code,
       data: transaction.data,
@@ -72,7 +74,7 @@ export function createWalletConnectSign(
 
     transaction.cmd = cmd;
 
-    return transaction;
+    return response.body;
   };
 
   return signWithWalletConnect;

@@ -165,7 +165,8 @@ export const GetAccounts = ({
                           {kadenaAccount.chains.map((chain) => {
                             const isSelectedAccount =
                               selectedAccount?.account === kadenaAccount.name &&
-                              selectedAccount?.chainId === chain;
+                              selectedAccount?.chainId === chain &&
+                              selectedAccount?.network === network;
 
                             return (
                               <tr

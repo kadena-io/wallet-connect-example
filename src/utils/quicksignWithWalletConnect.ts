@@ -58,7 +58,7 @@ export function createWalletConnectQuicksign(
         if (signedCommand.outcome.result === 'success') {
           if (signedCommand.outcome.hash !== transactionHashes[i]) {
             throw new Error(
-              'Hash of the transaction signed by the wallet does not match',
+              `Hash of the transaction signed by the wallet does not match. Our hash: ${transactionHashes[i]}, wallet hash: ${signedCommand.outcome.hash}`,
             );
           }
 

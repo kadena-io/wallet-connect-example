@@ -182,7 +182,10 @@ export const GetAccounts = ({
                                   {
                                     balances.find(
                                       (balanceItem) =>
-                                        balanceItem.chain === chain,
+                                        balanceItem.account ===
+                                          kadenaAccount.name &&
+                                        balanceItem.chain === chain &&
+                                        balanceItem.network === network,
                                     )?.balance
                                   }
                                 </td>

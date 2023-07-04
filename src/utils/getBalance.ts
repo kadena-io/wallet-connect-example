@@ -4,6 +4,7 @@ import { networkMap } from './networkMap';
 import { ChainId } from '@kadena/types';
 
 export interface BalanceItem {
+  network: keyof typeof networkMap;
   account: string;
   chain: ChainId;
   balance: string;
@@ -25,6 +26,7 @@ export async function getBalance(
   });
 
   return {
+    network,
     account,
     chain: chainId,
     balance: response.result.data,

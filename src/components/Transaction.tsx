@@ -1,5 +1,8 @@
 import { useWalletConnectClient } from '@/providers/ClientContextProvider';
-import { createWalletConnectSign } from '@/utils/signWithWalletConnect';
+import {
+  createWalletConnectSign,
+  createWalletConnectQuicksign,
+} from '@kadena/client';
 import { IAccount } from '@/types';
 import { useState } from 'react';
 import { IPactCommand, PactCommand } from '@kadena/client';
@@ -8,7 +11,6 @@ import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ChainId, ICommand, IUnsignedCommand } from '@kadena/types';
 import { PactNumber } from '@kadena/pactjs';
-import { createWalletConnectQuicksign } from '@/utils/quicksignWithWalletConnect';
 import { networkMap } from '@/utils/networkMap';
 
 export const Transaction = ({

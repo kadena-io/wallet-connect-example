@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@kadena/chainweb-node-client": "^0.3.3",
-    "@kadena/client": "^0.5.0",
+    "@kadena/client": "link:../../kadena-community/kadena.js/packages/libs/client",
     "@kadena/pactjs": "^0.2.9",
     "@kadena/types": "^0.3.3",
     "@types/node": "20.3.3",

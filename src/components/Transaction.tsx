@@ -2,15 +2,22 @@ import { useWalletConnectClient } from '@/providers/ClientContextProvider';
 import {
   createWalletConnectSign,
   createWalletConnectQuicksign,
+  commandBuilder,
+  payload,
+  Pact,
+  setMeta,
+  addSigner,
+  setProp,
+  createTransaction,
+  signWithChainweaver,
 } from '@kadena/client';
 import { IAccount } from '@/types';
 import { useState } from 'react';
-import { IPactCommand, PactCommand } from '@kadena/client';
+import { IPactCommand } from '@kadena/client';
 import { onlyKey } from '@/utils/onlyKey';
 import { apiHost } from '@/utils/apiHost';
 import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
 import { ChainId, ICommand, IUnsignedCommand } from '@kadena/types';
-import { PactNumber } from '@kadena/pactjs';
 import { networkMap } from '@/utils/networkMap';
 
 export const Transaction = ({
@@ -64,38 +71,53 @@ export const Transaction = ({
       selectedAccount.walletConnectChainId,
     );
 
-    const pactCommand = new PactCommand();
-    pactCommand.code = `(coin.transfer "${
-      selectedAccount.account
-    }" "${toAccount}" ${new PactNumber(amount).toDecimal()})`;
-
-    pactCommand
-      .setMeta(
-        {
-          chainId: selectedAccount.chainId,
-          gasLimit: 1000,
-          gasPrice: 1.0e-6,
-          ttl: 10 * 60,
-          sender: selectedAccount.account,
-        },
+    const pactCommand = commandBuilder(
+      payload.exec(
+        (Pact.modules as any).coin.transfer(
+          selectedAccount.account,
+          toAccount,
+          {
+            decimal: `${amount}`,
+          },
+        ),
+      ),
+      addSigner(
+        selectedAccount.publicKey, // pubKey of sender
+        (withCapability: any) => [
+          withCapability(
+            'coin.TRANSFER',
+            selectedAccount.account, // account of sender
+            toAccount, // account of receiver
+            { decimal: `${amount}` },
+          ),
+          withCapability('coin.GAS'),
+        ],
+      ),
+      setMeta({
+        chainId: selectedAccount.chainId,
+        gasLimit: 1000,
+        gasPrice: 1.0e-6,
+        ttl: 10 * 60,
+        sender: selectedAccount.account,
+      }),
+      setProp(
+        'networkId',
         selectedAccount.network as IPactCommand['networkId'],
-      )
-      .addCap('coin.GAS', onlyKey(selectedAccount.account))
-      .addCap(
-        'coin.TRANSFER',
-        onlyKey(selectedAccount.account), // pubKey of sender
-        selectedAccount.account, // account of sender
-        toAccount, // account of receiver
-        { decimal: `${amount}` }, // amount
-      );
+      ),
+    );
+    console.log({ pactCommand });
+
+    const tx = createTransaction(pactCommand);
+    console.log(tx);
 
     let signedPactCommands: (ICommand | IUnsignedCommand)[] = [];
     if (type === 'sign') {
-      signedPactCommands = [await signWithWalletConnect(pactCommand)];
+      signedPactCommands = [await signWithWalletConnect(tx)];
+      // signedPactCommands = await signWithChainweaver(tx);
     }
 
     if (type === 'quicksign') {
-      signedPactCommands = await quicksignWithWalletConnect(pactCommand);
+      signedPactCommands = await quicksignWithWalletConnect(tx);
     }
 
     if (signedPactCommands.length === 0) {
@@ -107,14 +129,14 @@ export const Transaction = ({
     // In this example we only support one command, so we get the first one
     setTransaction({
       signedPactCommand,
-      chainId: pactCommand.publicMeta.chainId,
+      chainId: pactCommand.meta!.chainId,
       networkId: pactCommand.networkId,
     });
 
     return {
       signedPactCommand,
-      chainId: pactCommand.publicMeta.chainId,
-      networkId: pactCommand.networkId,
+      chainId: pactCommand.meta!.chainId,
+      networkId: pactCommand.networkId as keyof typeof networkMap,
     };
   };
 

@@ -138,6 +138,7 @@ export const GetAccounts = ({
           const walletConnectChainId =
             `${splitted[0]}:${splitted[1]}` as TWalletConnectChainId;
           const network = splitted[1] as IPactCommand['networkId'];
+          const publicKey = account.publicKey;
 
           return (
             <div key={account.account}>
@@ -195,6 +196,7 @@ export const GetAccounts = ({
                                       onClick={() =>
                                         setSelectedAccount({
                                           walletConnectChainId,
+                                          publicKey,
                                           network,
                                           account: kadenaAccount.name,
                                           chainId: chain,

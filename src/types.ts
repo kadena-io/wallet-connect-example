@@ -22,6 +22,7 @@ export interface ISigningRequest {
 
 export interface IWalletConnectAccount {
   account: string;
+  publicKey: string;
   contracts?: string[];
   kadenaAccounts: [
     {
@@ -34,6 +35,7 @@ export interface IWalletConnectAccount {
 
 export interface IAccount {
   walletConnectChainId: TWalletConnectChainId;
+  publicKey: IWalletConnectAccount['publicKey'];
   network: IPactCommand['networkId']; // Kadena network (mainnet, testnet, devnet)
   account: string; // Kadena account
   chainId: ChainId; // Kadena ChainId

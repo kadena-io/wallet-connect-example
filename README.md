@@ -1,14 +1,13 @@
 An example app written in [Next.js](https://nextjs.org/) to show how to work
 with Kadena and Wallet Connect V2.
 
-## Current issues
+## Please note
 
-At the moment some wallets overwrite the nonce that's sent in the
-SigningRequest. For `sign` we allow this, as the wallet should be able to alter
-for example the gasPrice and gasLimit. For `quickSign` we explicitly check if
-the hash of the unsigned transaction matches the one from the signed
-transaction. By doing this you're 100% sure that the transaction that was sent
-from the dApp is the transaction that is signed by the wallet
+We're currently in the process of creating a new version of @kadena/client. This
+repository uses this new version, which is currently in a
+[branch in kadena.js](https://github.com/kadena-community/kadena.js/tree/feat/3-phase-tr).
+Checkout this branch on your local machine and point to the correct folder in
+`package.json`.
 
 ## Getting Started
 

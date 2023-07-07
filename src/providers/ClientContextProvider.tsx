@@ -1,6 +1,6 @@
 import Client from '@walletconnect/sign-client';
 import { PairingTypes, SessionTypes } from '@walletconnect/types';
-import { Web3Modal } from '@web3modal/standalone';
+import { WalletConnectModal } from '@walletconnect/modal';
 import { getSdkError } from '@walletconnect/utils';
 
 import {
@@ -32,12 +32,11 @@ interface IContext {
 export const ClientContext = createContext<IContext>({} as IContext);
 
 /**
- * Web3Modal Config
+ * walletConnectModal Config
  */
-const web3Modal = new Web3Modal({
+const walletConnectModal = new WalletConnectModal({
   projectId: process.env.NEXT_PUBLIC_PROJECT_ID,
   themeMode: 'light',
-  walletConnectVersion: 2,
 });
 
 /**
@@ -96,7 +95,7 @@ export function ClientContextProvider({
 
         // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
         if (uri) {
-          web3Modal.openModal({ uri });
+          walletConnectModal.openModal({ uri });
         }
 
         const session = await approval();
@@ -109,7 +108,7 @@ export function ClientContextProvider({
         // ignore rejection
       } finally {
         // close modal in case it was open
-        web3Modal.closeModal();
+        walletConnectModal.closeModal();
       }
     },
     [client, onSessionConnected],

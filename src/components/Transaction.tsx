@@ -9,16 +9,13 @@ import {
   addSigner,
   setProp,
   createTransaction,
-  signWithChainweaver,
+  getClient,
 } from '@kadena/client';
 import { IAccount } from '@/types';
 import { useState } from 'react';
-import { IPactCommand } from '@kadena/client';
-import { onlyKey } from '@/utils/onlyKey';
-import { apiHost } from '@/utils/apiHost';
-import { createSendRequest, local, send } from '@kadena/chainweb-node-client';
-import { ChainId, ICommand, IUnsignedCommand } from '@kadena/types';
-import { networkMap } from '@/utils/networkMap';
+import { IUnsignedCommand } from '@kadena/types';
+import { getHostUrl } from '@/utils/getHostUrl';
+import { ICommandResult } from '@kadena/chainweb-node-client';
 
 export const Transaction = ({
   selectedAccount,
@@ -30,16 +27,12 @@ export const Transaction = ({
   const { client, session } = useWalletConnectClient();
 
   const [amount, setAmount] = useState<number>(0);
-  const [toAccount, setToAccount] = useState<string | undefined>();
+  const [toAccount, setToAccount] = useState<string>();
   const [transaction, setTransaction] = useState<any>();
-  const [localResult, setLocalResult] = useState<any>();
-  const [sendResult, setSendResult] = useState<any>();
+  const [localResult, setLocalResult] = useState<ICommandResult>();
+  const [submitResult, setSubmitResult] = useState<string[]>();
 
-  const buildAndSignTransaction = async (): Promise<{
-    signedPactCommand: IUnsignedCommand;
-    chainId: ChainId;
-    networkId: keyof typeof networkMap;
-  }> => {
+  const buildAndSignTransaction = async (): Promise<IUnsignedCommand> => {
     if (!client) {
       throw new Error('No client');
     }
@@ -88,7 +81,7 @@ export const Transaction = ({
             'coin.TRANSFER',
             selectedAccount.account, // account of sender
             toAccount, // account of receiver
-            { decimal: `${amount}` },
+            { decimal: `${amount}` }, // amount to send
           ),
           withCapability('coin.GAS'),
         ],
@@ -100,66 +93,54 @@ export const Transaction = ({
         ttl: 10 * 60,
         sender: selectedAccount.account,
       }),
-      setProp(
-        'networkId',
-        selectedAccount.network as IPactCommand['networkId'],
-      ),
+      setProp('networkId', selectedAccount.network),
     );
-    console.log({ pactCommand });
 
-    const tx = createTransaction(pactCommand);
-    console.log(tx);
+    const transaction = createTransaction(pactCommand);
 
-    let signedPactCommands: (ICommand | IUnsignedCommand)[] = [];
+    let signedPactCommands: IUnsignedCommand[] = [];
     if (type === 'sign') {
-      signedPactCommands = [await signWithWalletConnect(tx)];
-      // signedPactCommands = await signWithChainweaver(tx);
+      signedPactCommands = [await signWithWalletConnect(transaction)];
     }
 
     if (type === 'quicksign') {
-      signedPactCommands = await quicksignWithWalletConnect(tx);
+      signedPactCommands = await quicksignWithWalletConnect(transaction);
     }
 
     if (signedPactCommands.length === 0) {
       throw new Error('No signed pact commands');
     }
 
-    const signedPactCommand = signedPactCommands[0];
+    console.info(
+      `%cResponse: ${type}WithWalletConnect for ${selectedAccount.account}`,
+      'color:green;font-weight:bold;',
+      signedPactCommands,
+    );
 
     // In this example we only support one command, so we get the first one
-    setTransaction({
-      signedPactCommand,
-      chainId: pactCommand.meta!.chainId,
-      networkId: pactCommand.networkId,
-    });
+    const signedPactCommand = signedPactCommands[0];
 
-    return {
-      signedPactCommand,
-      chainId: pactCommand.meta!.chainId,
-      networkId: pactCommand.networkId as keyof typeof networkMap,
-    };
+    setTransaction(signedPactCommand);
+
+    return signedPactCommand;
   };
 
   const handleClickLocal = async () => {
-    const { signedPactCommand, chainId, networkId } =
-      await buildAndSignTransaction();
+    const signedPactCommand = await buildAndSignTransaction();
 
-    const localResult = await local(
-      signedPactCommand,
-      apiHost(chainId, networkId),
-    );
+    const { local } = getClient(getHostUrl);
+    const localResult = await local(signedPactCommand);
 
     setLocalResult(localResult);
   };
 
-  const handleClickSend = async () => {
-    const { signedPactCommand, chainId, networkId } = transaction;
-    const sendResult = await send(
-      createSendRequest(signedPactCommand),
-      apiHost(chainId, networkId),
-    );
+  const handleClickSubmit = async () => {
+    const signedPactCommand = transaction;
 
-    setSendResult(sendResult);
+    const { submit } = getClient(getHostUrl);
+    const sendResult = await submit(signedPactCommand);
+
+    setSubmitResult(sendResult);
   };
 
   return (
@@ -204,19 +185,19 @@ export const Transaction = ({
               </details>
               <br />
               {localResult.result.status === 'success' ? (
-                <button onClick={handleClickSend}>Send transaction</button>
+                <button onClick={handleClickSubmit}>Submit transaction</button>
               ) : (
                 <strong>
-                  Validating transaction failed, cannot send transaction
+                  Validating transaction failed, cannot submit transaction
                 </strong>
               )}
             </>
           )}
 
-          {sendResult && (
+          {submitResult && (
             <details>
-              <summary>Send result</summary>
-              <pre>{JSON.stringify(sendResult, null, 2)}</pre>
+              <summary>Submit result</summary>
+              <pre>{JSON.stringify(submitResult, null, 2)}</pre>
             </details>
           )}
         </>

@@ -29,6 +29,7 @@ export const Transaction = ({
   const [amount, setAmount] = useState<number>(0);
   const [toAccount, setToAccount] = useState<string>();
   const [transaction, setTransaction] = useState<any>();
+  const [signingResponse, setSigningResponse] = useState<any>();
   const [localResult, setLocalResult] = useState<ICommandResult>();
   const [submitResult, setSubmitResult] = useState<string[]>();
 
@@ -111,11 +112,7 @@ export const Transaction = ({
       throw new Error('No signed pact commands');
     }
 
-    console.info(
-      `%cResponse: ${type}WithWalletConnect for ${selectedAccount.account}`,
-      'color:green;font-weight:bold;',
-      signedPactCommands,
-    );
+    setSigningResponse(signedPactCommands);
 
     // In this example we only support one command, so we get the first one
     const signedPactCommand = signedPactCommands[0];
@@ -176,6 +173,13 @@ export const Transaction = ({
               Sign and validate transaction
             </button>
           </p>
+
+          {signingResponse && (
+            <details>
+              <summary>Signing result</summary>
+              <pre>{JSON.stringify(signingResponse, null, 2)}</pre>
+            </details>
+          )}
 
           {localResult && (
             <>

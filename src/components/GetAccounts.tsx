@@ -25,6 +25,7 @@ export const GetAccounts = ({
     useState<string>('');
   const [onlyForCoinContract, setOnlyForCoinContract] =
     useState<boolean>(false);
+  const [getAccountsResponse, setGetAccountsResponse] = useState<any>();
 
   useEffect(() => {
     if (!accounts) return;
@@ -82,13 +83,6 @@ export const GetAccounts = ({
       },
     };
 
-    console.info(
-      '%cRequest:',
-      'color:blue;font-weight:bold;',
-      `kadena_getAccounts_v1 for ${selectedWalletConnectAccount}`,
-      accountsRequest,
-    );
-
     const [chain, network] = selectedWalletConnectAccount.split(':') as [
       string,
       IPactCommand['networkId'],
@@ -102,12 +96,7 @@ export const GetAccounts = ({
       request: accountsRequest,
     });
 
-    console.info(
-      '%cResponse:',
-      'color:green;font-weight:bold;',
-      `kadena_getAccounts_v1 for ${selectedWalletConnectAccount}`,
-      response,
-    );
+    setGetAccountsResponse(response);
 
     setKadenaAccounts(response?.accounts);
     getBalances(response?.accounts, network);
@@ -141,6 +130,13 @@ export const GetAccounts = ({
       <button onClick={handleClick} disabled={isLoading}>
         {isLoading ? 'Loading...' : 'Get accounts'}
       </button>
+
+      {getAccountsResponse && (
+        <details style={{ marginTop: '10px' }}>
+          <summary>getAccounts response</summary>
+          <pre>{JSON.stringify(getAccountsResponse, null, 2)}</pre>
+        </details>
+      )}
 
       {kadenaAccounts &&
         kadenaAccounts.map((account) => {

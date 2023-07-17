@@ -2,19 +2,12 @@ import { useWalletConnectClient } from '@/providers/ClientContextProvider';
 import {
   createWalletConnectSign,
   createWalletConnectQuicksign,
-  commandBuilder,
-  payload,
   Pact,
-  setMeta,
-  addSigner,
-  setProp,
-  createTransaction,
   getClient,
 } from '@kadena/client';
 import { IAccount } from '@/types';
 import { useState } from 'react';
 import { IUnsignedCommand } from '@kadena/types';
-import { getHostUrl } from '@/utils/getHostUrl';
 import { ICommandResult } from '@kadena/chainweb-node-client';
 
 export const Transaction = ({
@@ -65,8 +58,8 @@ export const Transaction = ({
       selectedAccount.walletConnectChainId,
     );
 
-    const pactCommand = commandBuilder(
-      payload.exec(
+    const pactCommand = Pact.builder
+      .execution(
         (Pact.modules as any).coin.transfer(
           selectedAccount.account,
           toAccount,
@@ -74,8 +67,8 @@ export const Transaction = ({
             decimal: `${amount}`,
           },
         ),
-      ),
-      addSigner(
+      )
+      .addSigner(
         selectedAccount.publicKey, // pubKey of sender
         (withCapability: any) => [
           withCapability(
@@ -86,18 +79,17 @@ export const Transaction = ({
           ),
           withCapability('coin.GAS'),
         ],
-      ),
-      setMeta({
+      )
+      .setMeta({
         chainId: selectedAccount.chainId,
         gasLimit: 1000,
         gasPrice: 1.0e-6,
         ttl: 10 * 60,
         sender: selectedAccount.account,
-      }),
-      setProp('networkId', selectedAccount.network),
-    );
+      })
+      .setNetworkId(selectedAccount.network);
 
-    const transaction = createTransaction(pactCommand);
+    const transaction = pactCommand.createTransaction();
 
     let signedPactCommands: IUnsignedCommand[] = [];
     if (type === 'sign') {
@@ -105,7 +97,8 @@ export const Transaction = ({
     }
 
     if (type === 'quicksign') {
-      signedPactCommands = await quicksignWithWalletConnect(transaction);
+      // with quicksign we can sign multiple commands at once, but since we only have one we transform it into an array
+      signedPactCommands = await quicksignWithWalletConnect([transaction]);
     }
 
     if (signedPactCommands.length === 0) {
@@ -125,7 +118,7 @@ export const Transaction = ({
   const handleClickLocal = async () => {
     const signedPactCommand = await buildAndSignTransaction();
 
-    const { local } = getClient(getHostUrl);
+    const { local } = getClient();
     const localResult = await local(signedPactCommand);
 
     setLocalResult(localResult);
@@ -134,7 +127,7 @@ export const Transaction = ({
   const handleClickSubmit = async () => {
     const signedPactCommand = transaction;
 
-    const { submit } = getClient(getHostUrl);
+    const { submit } = getClient();
     const sendResult = await submit(signedPactCommand);
 
     setSubmitResult(sendResult);

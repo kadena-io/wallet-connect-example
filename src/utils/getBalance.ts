@@ -1,44 +1,26 @@
-import {
-  IPactCommand,
-  Pact,
-  commandBuilder,
-  createTransaction,
-  getClient,
-  payload,
-  setMeta,
-  setProp,
-} from '@kadena/client';
-import { ChainId } from '@kadena/types';
-import { getHostUrl } from './getHostUrl';
+import { IPactCommand, Pact, getClient } from '@kadena/client';
 
 export interface BalanceItem {
   network: IPactCommand['networkId'];
   account: string;
-  chain: ChainId;
+  chain: IPactCommand['meta']['chainId'];
   balance: string;
 }
 
 export async function getBalance(
   account: string,
   network: IPactCommand['networkId'],
-  chainId: ChainId,
+  chainId: IPactCommand['meta']['chainId'],
 ): Promise<BalanceItem> {
-  const pactCommand = commandBuilder(
-    payload.exec((Pact.modules as any).coin['get-balance'](account)),
-    setMeta({ sender: account, chainId }),
-    setProp('networkId', network),
-  );
+  const transaction = Pact.builder
+    .execution((Pact.modules as any).coin['get-balance'](account))
+    .setMeta({ sender: account, chainId })
+    .setNetworkId(network)
+    .createTransaction();
 
-  pactCommand.signers = []; // @TODO remove
+  const { dirtyRead } = getClient();
 
-  const { local } = getClient(getHostUrl);
-
-  const transaction = createTransaction(pactCommand);
-
-  const response = await local(transaction, {
-    signatureValidation: false,
-    preflight: false,
-  });
+  const response = await dirtyRead(transaction);
 
   return {
     network,

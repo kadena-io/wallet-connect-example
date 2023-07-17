@@ -11,7 +11,7 @@
   "dependencies": {
     "@kadena-dev/eslint-config": "^0.0.8",
     "@kadena/chainweb-node-client": "^0.3.3",
-    "@kadena/client": "file:../kadena.js/packages/libs/client",
+    "@kadena/client": "^1.0.0-alpha.3",
     "@kadena/pactjs": "^0.2.9",
     "@kadena/types": "^0.3.3",
     "@types/node": "20.4.0",

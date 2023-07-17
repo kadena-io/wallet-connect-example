@@ -3,11 +3,7 @@ with Kadena and Wallet Connect V2.
 
 ## Please note
 
-We're currently in the process of creating a new version of @kadena/client. This
-repository uses this new version, which is currently in a
-[branch in kadena.js](https://github.com/kadena-community/kadena.js/tree/feat/3-phase-tr).
-Checkout this branch on your local machine and point to the correct folder in
-`package.json`.
+This repo uses the alpha version of `@kadena/client`.
 
 ## Getting Started
 

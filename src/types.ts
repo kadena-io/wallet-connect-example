@@ -37,7 +37,7 @@ export interface IAccount {
   publicKey: IWalletConnectAccount['publicKey']; // Kadena public key
   network: IPactCommand['networkId']; // Kadena network (mainnet, testnet, devnet)
   account: string; // Kadena account
-  chainId: ChainId; // Kadena ChainId
+  chainId: IPactCommand['meta']['chainId']; // Kadena ChainId
 }
 
 export type TSigningType = 'sign' | 'quicksign';

@@ -3,12 +3,13 @@ import {
   createWalletConnectSign,
   createWalletConnectQuicksign,
   Pact,
-  getClient,
+  createClient,
+  ITransactionDescriptor,
+  ICommandResult,
 } from '@kadena/client';
 import { IAccount } from '@/types';
 import { useState } from 'react';
 import { IUnsignedCommand } from '@kadena/types';
-import { ICommandResult } from '@kadena/chainweb-node-client';
 
 export const Transaction = ({
   selectedAccount,
@@ -24,7 +25,7 @@ export const Transaction = ({
   const [transaction, setTransaction] = useState<any>();
   const [signingResponse, setSigningResponse] = useState<any>();
   const [localResult, setLocalResult] = useState<ICommandResult>();
-  const [submitResult, setSubmitResult] = useState<string[]>();
+  const [submitResult, setSubmitResult] = useState<ITransactionDescriptor>();
 
   const buildAndSignTransaction = async (): Promise<IUnsignedCommand> => {
     if (!client) {
@@ -52,6 +53,7 @@ export const Transaction = ({
       session,
       selectedAccount.walletConnectChainId,
     );
+
     const quicksignWithWalletConnect = createWalletConnectQuicksign(
       client,
       session,
@@ -82,33 +84,26 @@ export const Transaction = ({
       )
       .setMeta({
         chainId: selectedAccount.chainId,
-        gasLimit: 1000,
-        gasPrice: 1.0e-6,
-        ttl: 10 * 60,
-        sender: selectedAccount.account,
+        senderAccount: selectedAccount.account,
       })
       .setNetworkId(selectedAccount.network);
 
     const transaction = pactCommand.createTransaction();
 
-    let signedPactCommands: IUnsignedCommand[] = [];
+    let signedPactCommand: IUnsignedCommand | null = null;
     if (type === 'sign') {
-      signedPactCommands = [await signWithWalletConnect(transaction)];
+      signedPactCommand = await signWithWalletConnect(transaction);
     }
 
     if (type === 'quicksign') {
-      // with quicksign we can sign multiple commands at once, but since we only have one we transform it into an array
-      signedPactCommands = await quicksignWithWalletConnect([transaction]);
+      signedPactCommand = await quicksignWithWalletConnect(transaction);
     }
 
-    if (signedPactCommands.length === 0) {
+    if (!signedPactCommand) {
       throw new Error('No signed pact commands');
     }
 
-    setSigningResponse(signedPactCommands);
-
-    // In this example we only support one command, so we get the first one
-    const signedPactCommand = signedPactCommands[0];
+    setSigningResponse(signedPactCommand);
 
     setTransaction(signedPactCommand);
 
@@ -118,7 +113,7 @@ export const Transaction = ({
   const handleClickLocal = async () => {
     const signedPactCommand = await buildAndSignTransaction();
 
-    const { local } = getClient();
+    const { local } = createClient();
     const localResult = await local(signedPactCommand);
 
     setLocalResult(localResult);
@@ -127,7 +122,7 @@ export const Transaction = ({
   const handleClickSubmit = async () => {
     const signedPactCommand = transaction;
 
-    const { submit } = getClient();
+    const { submit } = createClient();
     const sendResult = await submit(signedPactCommand);
 
     setSubmitResult(sendResult);

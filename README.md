@@ -1,13 +1,15 @@
 An example app written in [Next.js](https://nextjs.org/) to show how to work
 with Kadena and Wallet Connect V2.
 
-## Please note
-
-This repo uses the alpha version of `@kadena/client`.
-
 ## Getting Started
 
-Install dependencies:
+### Prerequisites
+
+Create a project ID at https://cloud.walletconnect.com/sign-in. Then, duplicate
+the `.env.example` file and rename it to `.env`. Add your project ID to the
+.env.local file.
+
+### Install dependencies
 
 ```bash
 npm i
@@ -17,7 +19,7 @@ yarn
 pnpm i
 ```
 
-Then, run the development server:
+### Run the development server
 
 ```bash
 npm run dev

@@ -14,7 +14,7 @@ export async function getBalance(
 ): Promise<BalanceItem> {
   const transaction = Pact.builder
     .execution((Pact.modules as any).coin['get-balance'](account))
-    .setMeta({ sender: account, chainId })
+    .setMeta({ senderAccount: account, chainId })
     .setNetworkId(network)
     .createTransaction();
 

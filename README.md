@@ -7,7 +7,7 @@ with Kadena and Wallet Connect V2.
 
 Create a project ID at https://cloud.walletconnect.com/sign-in. Then, duplicate
 the `.env.example` file and rename it to `.env`. Add your project ID to the
-.env.local file.
+`.env` file.
 
 ### Install dependencies
 

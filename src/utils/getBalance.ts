@@ -1,4 +1,4 @@
-import { IPactCommand, Pact, getClient } from '@kadena/client';
+import { IPactCommand, Pact, createClient } from '@kadena/client';
 
 export interface BalanceItem {
   network: IPactCommand['networkId'];
@@ -18,7 +18,7 @@ export async function getBalance(
     .setNetworkId(network)
     .createTransaction();
 
-  const { dirtyRead } = getClient();
+  const { dirtyRead } = createClient();
 
   const response = await dirtyRead(transaction);
 
